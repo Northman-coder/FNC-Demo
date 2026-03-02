@@ -83,7 +83,7 @@ gem "sidekiq", "~> 7.0"
 gem "redis", "~> 5.0"
 
 # Pagination
-gem "pagy", "~> 8.0"
+gem "pagy", "~> 43.3"
 
 # Admin backoffice (kept separate from the app's existing /admin dashboard)
 gem "activeadmin", "4.0.0.beta21"
