@@ -1,0 +1,43 @@
+<% content_for :title, "Manage Categories" %>
+
+<div class="max-w-4xl mx-auto py-10 px-4">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-3xl font-bold text-indigo-800">Categories</h1>
+    <%= link_to "New Category", new_category_path, class: "bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-1.5 rounded-lg transition" %>
+  </div>
+
+  <% if notice.present? %>
+    <p class="py-2 px-3 bg-green-50 mb-5 text-green-600 font-medium rounded-md inline-block"><%= notice %></p>
+  <% end %>
+
+  <% if @categories.any? %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <% @categories.each do |category| %>
+        <div class="bg-white rounded-xl shadow-sm flex items-center gap-4 p-4">
+          <div class="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+            <% if category.image.attached? %>
+              <%= image_tag category.image, class: "w-full h-full object-cover" %>
+            <% else %>
+              <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            <% end %>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 truncate"><%= category.name %></p>
+          </div>
+          <div class="flex gap-2 flex-shrink-0">
+            <%= link_to "Edit", edit_category_path(category), class: "bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-1 px-3 rounded" %>
+            <%= link_to "Delete", category_path(category), data: { turbo_method: :delete, turbo_confirm: "Delete #{category.name}?" }, class: "bg-red-600 hover:bg-red-500 text-white text-sm font-bold py-1 px-3 rounded" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-gray-500 text-center py-12">No categories yet. Add one above.</p>
+  <% end %>
+
+  <div class="mt-8">
+    <%= link_to "Back to Dashboard", admin_dashboard_path, class: "text-indigo-600 hover:underline text-sm" %>
+  </div>
+</div>

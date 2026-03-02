@@ -1,0 +1,60 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/40 to-gray-100 flex items-center justify-center px-4 py-16">
+  <div class="w-full max-w-md">
+
+    <div class="text-center mb-8">
+      <%= link_to root_path do %>
+        <%= image_tag "logo.png", class: "h-12 w-auto mx-auto" %>
+      <% end %>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+      <h1 class="text-2xl font-bold text-gray-900 text-center mb-1">Create your account</h1>
+      <p class="text-sm text-gray-500 text-center mb-7">Join us and start shopping today.</p>
+
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+
+        <div class="space-y-4">
+          <div>
+            <%= f.label :email, "Email address", class: "block text-sm font-semibold text-gray-700 mb-1.5" %>
+            <%= f.email_field :email,
+                autofocus: true,
+                autocomplete: "email",
+                placeholder: "you@example.com",
+                class: "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow" %>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <%= f.label :password, "Password", class: "block text-sm font-semibold text-gray-700" %>
+              <% if @minimum_password_length %>
+                <span class="text-xs text-gray-400">At least <%= @minimum_password_length %> characters</span>
+              <% end %>
+            </div>
+            <%= f.password_field :password,
+                autocomplete: "new-password",
+                class: "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow" %>
+          </div>
+
+          <div>
+            <%= f.label :password_confirmation, "Confirm password", class: "block text-sm font-semibold text-gray-700 mb-1.5" %>
+            <%= f.password_field :password_confirmation,
+                autocomplete: "new-password",
+                class: "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow" %>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <%= f.submit "Create account",
+              class: "w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-full transition-colors cursor-pointer text-sm" %>
+        </div>
+      <% end %>
+
+      <p class="mt-6 text-center text-sm text-gray-500">
+        Already have an account?
+        <%= link_to "Sign in", new_customer_session_path, class: "text-indigo-600 font-semibold hover:text-indigo-800 transition-colors" %>
+      </p>
+    </div>
+
+  </div>
+</div>

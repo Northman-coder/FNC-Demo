@@ -1,0 +1,31 @@
+<div class="max-w-3xl mx-auto px-4 py-10">
+  <div class="flex items-center gap-3 mb-8">
+    <div class="w-1 h-7 bg-indigo-600 rounded-full"></div>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Send Newsletter</h1>
+      <p class="text-sm text-gray-500 mt-0.5"><%= @subscriber_count %> subscriber<%= "s" if @subscriber_count != 1 %></p>
+    </div>
+  </div>
+
+  <% if flash[:alert] %>
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3"><%= flash[:alert] %></div>
+  <% end %>
+
+  <%= form_with url: admin_newsletters_path, method: :post, class: "space-y-6" do |f| %>
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1.5">Subject</label>
+      <%= f.text_field :subject, placeholder: "e.g. New arrivals this week!", class: "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1.5">Body <span class="font-normal text-gray-400">(HTML supported)</span></label>
+      <%= f.text_area :body, rows: 16, placeholder: "<h2>Hello!</h2>\n<p>Check out what's new...</p>", class: "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      <p class="text-xs text-gray-400 mt-1.5">You can use the same CSS classes as the mailer layout: <code>h2</code>, <code>p class="lead"</code>, <code>a class="btn"</code>, etc.</p>
+    </div>
+
+    <div class="flex items-center gap-4 pt-2">
+      <%= f.submit "Send to #{@subscriber_count} Subscriber#{"s" if @subscriber_count != 1}", class: "bg-indigo-600 text-white text-sm font-semibold px-6 py-3 rounded-full hover:bg-indigo-700 transition-colors cursor-pointer" %>
+      <%= link_to "Cancel", admin_root_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
+    </div>
+  <% end %>
+</div>

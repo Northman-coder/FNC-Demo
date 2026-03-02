@@ -1,0 +1,44 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/40 to-gray-100 flex items-center justify-center px-4 py-16">
+  <div class="w-full max-w-md">
+
+    <div class="text-center mb-8">
+      <%= link_to root_path do %>
+        <%= image_tag "logo.png", class: "h-12 w-auto mx-auto" %>
+      <% end %>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+      <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+      </div>
+
+      <h1 class="text-2xl font-bold text-gray-900 text-center mb-1">Forgot your password?</h1>
+      <p class="text-sm text-gray-500 text-center mb-7">Enter your email and we'll send you a reset link.</p>
+
+      <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+
+        <div>
+          <%= f.label :email, "Email address", class: "block text-sm font-semibold text-gray-700 mb-1.5" %>
+          <%= f.email_field :email,
+              autofocus: true,
+              autocomplete: "email",
+              placeholder: "you@example.com",
+              class: "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow" %>
+        </div>
+
+        <div class="mt-6">
+          <%= f.submit "Send reset instructions",
+              class: "w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-full transition-colors cursor-pointer text-sm" %>
+        </div>
+      <% end %>
+
+      <div class="mt-6 flex flex-col items-center gap-2 text-sm text-gray-500">
+        <%= link_to "Back to sign in", new_customer_session_path, class: "text-indigo-600 font-semibold hover:text-indigo-800 transition-colors" %>
+      </div>
+    </div>
+
+  </div>
+</div>

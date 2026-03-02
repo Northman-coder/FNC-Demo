@@ -1,0 +1,192 @@
+<% content_for :title, "Pay #{ @order.order_number }" %>
+
+<div class="max-w-screen-md mx-auto px-4 sm:px-6 py-10">
+  <%= link_to order_path(@order),
+      class: "inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-indigo-600 font-medium transition-colors mb-6" do %>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+    </svg>
+    Back to order
+  <% end %>
+
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 font-mono tracking-wide"><%= @order.order_number %></h1>
+        <p class="text-sm text-gray-500 mt-1">Complete payment to confirm your order.</p>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-gray-400">Total</p>
+        <p class="text-2xl font-bold text-gray-900"><%= number_to_currency(@order.total_with_tax) %></p>
+      </div>
+    </div>
+
+    <div class="mt-6 space-y-3">
+      <% if @stripe_configured %>
+        <%= button_to "Pay with card (Stripe)", pay_stripe_order_path(@order), method: :post,
+            form: { data: { turbo: "false", turbo_frame: "_top" }, target: "_top" },
+            class: "w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold py-3.5 rounded-2xl transition-all shadow-sm hover:shadow-indigo-200 hover:shadow-lg cursor-pointer text-sm" %>
+      <% else %>
+        <button disabled
+                class="w-full bg-gray-200 text-gray-500 font-bold py-3.5 rounded-2xl cursor-not-allowed text-sm">
+          Stripe not configured (missing STRIPE_SECRET_KEY)
+        </button>
+      <% end %>
+
+      <% if @paypal_configured %>
+        <div class="w-full">
+          <div id="paypal-buttons"
+               data-create-url="<%= pay_paypal_create_order_path(@order) %>"
+               data-capture-url="<%= pay_paypal_capture_order_path(@order) %>"
+               data-success-url="<%= order_path(@order) %>"
+               data-client-id="<%= @paypal_client_id %>"
+               data-currency="<%= @paypal_currency %>">
+          </div>
+          <p id="paypal-loading" class="text-sm text-gray-500 mt-2">Loading PayPal…</p>
+          <p id="paypal-error" class="hidden text-sm text-red-600 mt-2"></p>
+        </div>
+
+        <script>
+          (function () {
+            function showError(message) {
+              var errorEl = document.getElementById("paypal-error");
+              var loadingEl = document.getElementById("paypal-loading");
+              if (loadingEl) loadingEl.classList.add("hidden");
+              if (!errorEl) return alert(message);
+              errorEl.textContent = message;
+              errorEl.classList.remove("hidden");
+            }
+
+            function initPayPalButtons() {
+              var container = document.getElementById("paypal-buttons");
+              if (!container) return;
+
+              if (container.getAttribute("data-rendered") === "1") return;
+
+              var loadingEl = document.getElementById("paypal-loading");
+              var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+              var csrfToken = csrfMeta && csrfMeta.getAttribute("content");
+
+              if (!csrfToken) {
+                showError("Missing CSRF token. Refresh the page and try again.");
+                return;
+              }
+
+              if (!window.paypal || !window.paypal.Buttons) {
+                showError("PayPal failed to load. Please refresh.");
+                return;
+              }
+
+              var createUrl = container.getAttribute("data-create-url");
+              var captureUrl = container.getAttribute("data-capture-url");
+              var successUrl = container.getAttribute("data-success-url");
+
+              if (loadingEl) loadingEl.classList.add("hidden");
+
+              container.setAttribute("data-rendered", "1");
+              container.innerHTML = "";
+
+              function parseJsonResponse(res) {
+                var contentType = (res.headers && res.headers.get && res.headers.get("content-type")) || "";
+                if (contentType.indexOf("application/json") !== -1) {
+                  return res.json();
+                }
+                return res.text().then(function (text) {
+                  throw new Error(
+                    "Server returned non-JSON (" + res.status + "). " +
+                    "This is usually a login redirect, CSRF issue, or server error. " +
+                    "Response starts with: " + (text || "").slice(0, 80)
+                  );
+                });
+              }
+
+              window.paypal.Buttons({
+                createOrder: function () {
+                  return fetch(createUrl, {
+                    method: "POST",
+                    headers: {
+                      "Accept": "application/json",
+                      "Content-Type": "application/json",
+                      "X-CSRF-Token": csrfToken
+                    },
+                    credentials: "same-origin",
+                    body: JSON.stringify({})
+                  }).then(function (res) {
+                    return parseJsonResponse(res).then(function (json) {
+                      if (!res.ok) throw new Error(json && json.error ? json.error : "Failed to create PayPal order.");
+                      if (!json || !json.orderID) throw new Error("PayPal order creation failed.");
+                      return json.orderID;
+                    });
+                  });
+                },
+                onApprove: function (data) {
+                  return fetch(captureUrl, {
+                    method: "POST",
+                    headers: {
+                      "Accept": "application/json",
+                      "Content-Type": "application/json",
+                      "X-CSRF-Token": csrfToken
+                    },
+                    credentials: "same-origin",
+                    body: JSON.stringify({ orderID: data.orderID })
+                  }).then(function (res) {
+                    return parseJsonResponse(res).then(function (json) {
+                      if (!res.ok) throw new Error(json && json.error ? json.error : "Failed to capture PayPal payment.");
+                      window.location.assign(successUrl);
+                    });
+                  }).catch(function (err) {
+                    showError(err && err.message ? err.message : "PayPal capture failed.");
+                  });
+                },
+                onError: function (err) {
+                  var msg = "PayPal error.";
+                  if (err && err.message) msg = err.message;
+                  else if (typeof err === "string") msg = err;
+                  else if (err) {
+                    try { msg = JSON.stringify(err); } catch (e) {}
+                  }
+                  showError(msg);
+                },
+                onCancel: function () {
+                  showError("PayPal payment was cancelled.");
+                }
+              }).render("#paypal-buttons");
+            }
+
+            function ensurePayPalSdkLoaded() {
+              if (window.paypal && window.paypal.Buttons) {
+                initPayPalButtons();
+                return;
+              }
+
+              if (document.getElementById("paypal-sdk")) return;
+
+              var container = document.getElementById("paypal-buttons");
+              if (!container) return;
+
+              var clientId = container.getAttribute("data-client-id");
+              var currency = container.getAttribute("data-currency");
+
+              var script = document.createElement("script");
+              script.id = "paypal-sdk";
+              script.src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(clientId) + "&currency=" + encodeURIComponent(currency) + "&intent=capture&disable-funding=card,credit,venmo";
+              script.onload = initPayPalButtons;
+              script.onerror = function () { showError("PayPal failed to load. Please refresh."); };
+              document.head.appendChild(script);
+            }
+
+            document.addEventListener("turbo:load", ensurePayPalSdkLoaded);
+            document.addEventListener("DOMContentLoaded", ensurePayPalSdkLoaded);
+          })();
+        </script>
+      <% else %>
+        <button disabled
+                class="w-full bg-gray-200 text-gray-500 font-bold py-3.5 rounded-2xl cursor-not-allowed text-sm">
+          PayPal not configured (missing PAYPAL_CLIENT_ID/SECRET)
+        </button>
+      <% end %>
+
+      <p class="text-xs text-gray-400 pt-2">Payments are processed securely by Stripe or PayPal.</p>
+    </div>
+  </div>
+</div>

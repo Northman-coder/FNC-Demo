@@ -1,0 +1,248 @@
+<% content_for :title, @order.order_number %>
+
+<%
+  status_label_classes = case @order.status
+  when "pending"   then "bg-amber-100 text-amber-700"
+  when "paid"      then "bg-blue-100 text-blue-700"
+  when "shipped"   then "bg-indigo-100 text-indigo-700"
+  when "delivered" then "bg-emerald-100 text-emerald-700"
+  when "cancelled" then "bg-gray-100 text-gray-500"
+  else                  "bg-gray-100 text-gray-500"
+  end
+
+  steps        = %w[pending paid shipped delivered]
+  current_step = steps.index(@order.status) || 0
+%>
+
+<div class="max-w-screen-xl mx-auto px-4 sm:px-6 py-10">
+
+  <%# Back link %>
+  <%= link_to orders_path,
+      class: "inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-indigo-600 font-medium transition-colors mb-6" do %>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+    </svg>
+    Back to orders
+  <% end %>
+
+  <%# Page header %>
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <div class="flex items-center gap-3">
+      <div class="w-1 h-8 bg-indigo-600 rounded-full"></div>
+      <h1 class="text-3xl font-bold text-gray-900 font-mono tracking-wide"><%= @order.order_number %></h1>
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold <%= status_label_classes %>">
+        <%= @order.status.capitalize %>
+      </span>
+    </div>
+    <div class="flex items-center gap-2">
+      <% if @order.status == "pending" %>
+        <%= link_to "Pay now", pay_order_path(@order),
+            class: "px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-sm font-bold text-white transition-colors shadow-sm" %>
+      <% end %>
+      <% if @order.cancellable_by_customer? %>
+        <%= button_to "Cancel Order", cancel_order_path(@order), method: :patch,
+            class: "px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer",
+            data: { turbo_confirm: "Cancel order ##{@order.id}?" } %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Status progress bar — hidden for cancelled %>
+  <% if @order.status != "cancelled" %>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-8 py-6 mb-8">
+      <div class="relative flex items-center justify-between">
+
+        <%# Background connector %>
+        <div class="absolute inset-x-10 top-5 h-0.5 bg-gray-100"></div>
+        <%# Filled connector up to current step %>
+        <% fill_pct = steps.size > 1 ? (current_step.to_f / (steps.size - 1) * 100).round : 0 %>
+        <div class="absolute top-5 h-0.5 bg-indigo-500 left-10" style="width: calc(<%= fill_pct %>% - <%= fill_pct == 100 ? "2.5rem" : "0px" %>)"></div>
+
+        <% steps.each_with_index do |step, idx| %>
+          <%
+            is_done    = idx < current_step
+            is_current = idx == current_step
+            is_future  = idx > current_step
+            dot_class  = if is_done
+              "bg-indigo-600 border-indigo-600 text-white"
+            elsif is_current
+              "bg-white border-indigo-600 text-indigo-600 ring-4 ring-indigo-100"
+            else
+              "bg-white border-gray-200 text-gray-300"
+            end
+            label_class = if is_future then "text-gray-300"
+                          elsif is_current then "text-indigo-700 font-bold"
+                          else "text-gray-500"
+                          end
+          %>
+          <div class="relative z-10 flex flex-col items-center gap-2">
+            <div class="w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all <%= dot_class %>">
+              <% if is_done %>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                </svg>
+              <% else %>
+                <%= idx + 1 %>
+              <% end %>
+            </div>
+            <span class="text-xs font-semibold capitalize whitespace-nowrap <%= label_class %>"><%= step %></span>
+          </div>
+        <% end %>
+
+      </div>
+    </div>
+  <% else %>
+    <%# Cancelled banner %>
+    <div class="bg-red-50 border border-red-100 rounded-2xl px-6 py-4 mb-8 flex items-center gap-3">
+      <div class="w-9 h-9 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </div>
+      <div>
+        <p class="font-bold text-red-700 text-sm">Order Cancelled</p>
+        <p class="text-red-400 text-xs mt-0.5">This order was cancelled on <%= @order.updated_at.strftime("%b %-d, %Y") %>.</p>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Two-column layout %>
+  <div class="lg:grid lg:grid-cols-3 lg:gap-8 items-start">
+
+    <%# Items list — 2/3 %>
+    <div class="lg:col-span-2 mb-6 lg:mb-0">
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+
+        <%# Column headers — desktop only %>
+        <div class="hidden md:grid md:grid-cols-[1fr_80px_110px_110px] gap-4 px-6 py-3.5 bg-gray-50 border-b border-gray-100">
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Product</span>
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Qty</span>
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Unit Price</span>
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Total</span>
+        </div>
+
+        <% @order.order_items.each do |item| %>
+          <% cover = item.product.image.attached? ? item.product.image : (item.product.images.attached? ? item.product.images.first : nil) %>
+          <div class="flex flex-col md:grid md:grid-cols-[1fr_80px_110px_110px] gap-4 md:items-center px-6 py-5 border-b border-gray-50 last:border-b-0">
+
+            <%# Product info %>
+            <div class="flex items-center gap-4 min-w-0">
+              <div class="flex-shrink-0 w-16 h-16 bg-gray-50 rounded-xl border border-gray-100 overflow-hidden">
+                <% if cover %>
+                  <%= image_tag cover, class: "w-full h-full object-contain p-2" %>
+                <% else %>
+                  <div class="w-full h-full flex items-center justify-center text-gray-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                <% end %>
+              </div>
+              <div class="min-w-0">
+                <%= link_to item.product, class: "font-semibold text-gray-800 text-sm leading-snug hover:text-indigo-600 transition-colors line-clamp-2" do %>
+                  <%= item.product.name %>
+                <% end %>
+                <% if item.product.brand.present? %>
+                  <p class="text-xs text-gray-400 mt-0.5"><%= item.product.brand %></p>
+                <% end %>
+              </div>
+            </div>
+
+            <%# Qty %>
+            <div class="flex justify-between md:justify-center items-center">
+              <span class="text-xs text-gray-400 md:hidden">Qty</span>
+              <span class="text-sm font-semibold text-gray-700">× <%= item.quantity %></span>
+            </div>
+
+            <%# Unit price %>
+            <div class="flex justify-between md:justify-end items-center">
+              <span class="text-xs text-gray-400 md:hidden">Unit Price</span>
+              <span class="text-sm text-gray-600"><%= number_to_currency(item.unit_price) %></span>
+            </div>
+
+            <%# Line total %>
+            <div class="flex justify-between md:justify-end items-center">
+              <span class="text-xs text-gray-400 md:hidden">Total</span>
+              <span class="text-sm font-bold text-gray-900"><%= number_to_currency(item.unit_price * item.quantity) %></span>
+            </div>
+
+          </div>
+        <% end %>
+
+      </div>
+    </div>
+
+    <%# Summary sidebar — 1/3 %>
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:sticky lg:top-24 space-y-5">
+
+        <h2 class="font-bold text-gray-900 text-lg">Order Summary</h2>
+
+        <%# Breakdown %>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-500">
+              Subtotal (<%= @order.order_items.sum(:quantity) %> <%= @order.order_items.sum(:quantity) == 1 ? "item" : "items" %>)
+            </span>
+            <span class="font-semibold text-gray-800"><%= number_to_currency(@order.subtotal_price) %></span>
+          </div>
+          <% if @order.tax_amount.to_d > 0 %>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">VAT (<%= number_with_precision(@order.tax_percent, precision: 2) %>%)</span>
+              <span class="font-semibold text-gray-800"><%= number_to_currency(@order.tax_amount) %></span>
+            </div>
+          <% end %>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-500">Shipping</span>
+            <span class="font-semibold text-emerald-600">Free</span>
+          </div>
+        </div>
+
+        <%# Total %>
+        <div class="border-t border-gray-100 pt-4">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-gray-900">Total</span>
+            <span class="font-bold text-gray-900 text-2xl"><%= number_to_currency(@order.total_with_tax) %></span>
+          </div>
+          <p class="text-xs text-gray-400 mt-1.5">VAT is applied based on your country</p>
+        </div>
+
+        <%# Meta %>
+        <div class="border-t border-gray-50 pt-4 space-y-2.5">
+          <div class="flex items-start justify-between gap-3 text-sm">
+            <span class="text-gray-400">Reference</span>
+            <span class="font-mono font-bold text-gray-700 text-xs tracking-wide"><%= @order.order_number %></span>
+          </div>
+          <div class="flex items-start justify-between gap-3 text-sm">
+            <span class="text-gray-400 shrink-0">Placed</span>
+            <span class="font-semibold text-gray-700 text-right"><%= @order.created_at.strftime("%b %-d, %Y") %></span>
+          </div>
+          <div class="flex items-start justify-between gap-3 text-sm">
+            <span class="text-gray-400">Status</span>
+            <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold <%= status_label_classes %>">
+              <%= @order.status.capitalize %>
+            </span>
+          </div>
+        </div>
+
+        <%# Trust notes %>
+        <div class="border-t border-gray-50 pt-4 space-y-2">
+          <div class="flex items-center gap-2 text-xs text-gray-400">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Purchase protected
+          </div>
+          <div class="flex items-center gap-2 text-xs text-gray-400">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Easy 30-day returns
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

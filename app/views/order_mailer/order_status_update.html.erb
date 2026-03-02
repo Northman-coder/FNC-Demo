@@ -1,0 +1,63 @@
+<% status_messages = {
+  "paid"      => { headline: "Payment Received",      body: "Great news — your payment has been confirmed and your order is being prepared." },
+  "shipped"   => { headline: "Your Order is On Its Way!", body: "Your order has been shipped and is heading your way. Keep an eye out for your delivery." },
+  "delivered" => { headline: "Order Delivered",       body: "Your order has been delivered. We hope you love your purchase!" },
+  "cancelled" => { headline: "Order Cancelled",       body: "Your order has been cancelled. If you have any questions, please get in touch." }
+} %>
+<% msg = status_messages[@order.status] || { headline: "Order Update", body: "Your order status has been updated." } %>
+
+<h2><%= msg[:headline] %></h2>
+<p class="lead">Hi <%= @customer.first_name %>, <%= msg[:body] %></p>
+
+<hr class="divider">
+
+<p class="meta-label">Order Reference</p>
+<p class="meta-value" style="font-family:monospace; margin-bottom:16px;"><%= @order.order_number %></p>
+
+<p class="meta-label">New Status</p>
+<p style="margin-bottom:20px;">
+  <span class="badge badge-<%= @order.status %>"><%= @order.status.capitalize %></span>
+</p>
+
+<hr class="divider">
+
+<table class="items">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Qty</th>
+      <th class="r">Subtotal</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @items.each do |item| %>
+      <tr>
+        <td>
+          <div class="product-name"><%= item.product.name %></div>
+          <% if item.product.brand.present? %>
+            <div class="product-brand"><%= item.product.brand %></div>
+          <% end %>
+        </td>
+        <td><%= item.quantity %></td>
+        <td class="r">£<%= number_with_precision(item.unit_price * item.quantity, precision: 2) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="totals">
+  <div class="total-row grand">
+    <span>Order Total</span>
+    <span>£<%= number_with_precision(@order.total_with_tax, precision: 2) %></span>
+  </div>
+</div>
+
+<hr class="divider">
+
+<p style="text-align:center;">
+  <%= link_to "View Your Order", order_url(@order), class: "btn" %>
+</p>
+
+<% content_for :email_footer do %>
+  <p>You're receiving this because you placed an order with us.</p>
+<% end %>

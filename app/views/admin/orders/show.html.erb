@@ -1,0 +1,393 @@
+<%
+  status_badge = case @order.status
+  when "pending"   then "bg-amber-100 text-amber-700"
+  when "paid"      then "bg-blue-100 text-blue-700"
+  when "shipped"   then "bg-indigo-100 text-indigo-700"
+  when "delivered" then "bg-emerald-100 text-emerald-700"
+  when "cancelled" then "bg-gray-100 text-gray-500"
+  else                  "bg-gray-100 text-gray-500"
+  end
+%>
+
+<div class="min-h-screen bg-gray-100 p-8">
+  <div class="max-w-6xl mx-auto print-container">
+
+    <%# Top bar %>
+    <div class="flex items-center justify-between mb-7 no-print">
+      <%= link_to admin_orders_path, class: "inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-indigo-600 font-medium transition-colors" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        All Orders
+      <% end %>
+      <button onclick="window.print()"
+              class="inline-flex items-center gap-2 bg-white border border-gray-200 hover:border-indigo-300 hover:text-indigo-600 text-gray-500 text-sm font-medium px-4 py-2 rounded-xl transition-all shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
+        Print
+      </button>
+    </div>
+
+    <%# Print-only invoice / packing slip %>
+    <div class="print-only">
+      <div class="flex items-start justify-between gap-6 pb-4 border-b border-gray-200">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
+            <%= image_tag "logo.png", class: "w-10 h-10 object-contain" %>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Invoice / Packing Slip</p>
+            <p class="text-lg font-bold text-gray-900 mt-0.5"><%= @contact_detail&.company_name.presence || "Store" %></p>
+            <% if @contact_detail&.vat_number.present? %>
+              <p class="text-xs text-gray-500 mt-0.5">VAT ID: <span class="font-semibold text-gray-700"><%= @contact_detail.vat_number %></span></p>
+            <% end %>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="text-sm font-bold text-gray-900"><%= @order.order_number %></p>
+          <p class="text-xs text-gray-500">Order date: <%= @order.created_at.strftime("%b %-d, %Y") %></p>
+          <p class="text-xs text-gray-500">VAT: <%= number_with_precision(@order.tax_percent, precision: 2) %>% · <%= (@order.tax_region.presence || "international").upcase %></p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6 pt-4">
+        <div>
+          <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Post to</p>
+          <p class="text-xs font-semibold text-gray-900"><%= @order.customer.full_name %></p>
+          <% if @order.customer.address.present? %>
+            <p class="text-xs text-gray-700 whitespace-pre-line">
+              <%= @order.customer.address %>
+              <% if @order.customer.city.present? %>
+                <%= "\n#{@order.customer.city}" %>
+              <% end %>
+              <% if @order.customer.postal_code.present? %>
+                <%= "\n#{@order.customer.postal_code}" %>
+              <% end %>
+              <% if @order.customer.country.present? %>
+                <%= "\n#{@order.customer.country}" %>
+              <% end %>
+            </p>
+          <% else %>
+            <p class="text-xs text-gray-500">(No address on file)</p>
+          <% end %>
+        </div>
+
+        <div>
+          <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Post from</p>
+          <p class="text-xs font-semibold text-gray-900"><%= @contact_detail&.company_name.presence || "Store" %></p>
+          <% if @contact_detail&.address.present? %>
+            <p class="text-xs text-gray-700 whitespace-pre-line"><%= @contact_detail.address %></p>
+          <% end %>
+          <% if @contact_detail&.email.present? %>
+            <p class="text-xs text-gray-600 mt-1"><%= @contact_detail.email %></p>
+          <% end %>
+          <% if @contact_detail&.phone.present? %>
+            <p class="text-xs text-gray-600"><%= @contact_detail.phone %></p>
+          <% end %>
+        </div>
+
+        <div>
+          <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Buyer registration address</p>
+          <p class="text-xs font-semibold text-gray-900"><%= @order.customer.full_name %></p>
+          <p class="text-xs text-gray-700 whitespace-pre-line">
+            <%= [@order.customer.address, @order.customer.city, @order.customer.postal_code, @order.customer.country].compact_blank.join("\n") %>
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-5 border border-gray-200 rounded-xl overflow-hidden">
+        <table class="min-w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-4 py-2.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Item</th>
+              <th scope="col" class="px-4 py-2.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
+              <th scope="col" class="px-4 py-2.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Item price</th>
+              <th scope="col" class="px-4 py-2.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">VAT rate</th>
+              <th scope="col" class="px-4 py-2.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Item total</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <% @order.order_items.each do |item| %>
+              <tr>
+                <td class="px-4 py-3 text-xs text-gray-900">
+                  <div class="font-semibold"><%= item.product.name %></div>
+                  <% if item.product.brand.present? %>
+                    <div class="text-[10px] text-gray-500"><%= item.product.brand %></div>
+                  <% end %>
+                </td>
+                <td class="px-4 py-3 text-xs text-gray-700 text-right"><%= item.quantity %></td>
+                <td class="px-4 py-3 text-xs text-gray-700 text-right"><%= number_to_currency(item.unit_price) %></td>
+                <td class="px-4 py-3 text-xs text-gray-700 text-right"><%= number_with_precision(@order.tax_percent, precision: 2) %>%</td>
+                <td class="px-4 py-3 text-xs text-gray-900 font-semibold text-right"><%= number_to_currency(item.unit_price * item.quantity) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-end mt-4">
+        <div class="w-72 text-xs space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Subtotal (excl. VAT)</span>
+            <span class="font-semibold text-gray-900"><%= number_to_currency(@order.subtotal_price) %></span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Postage (excl. VAT)</span>
+            <span class="font-semibold text-gray-900"><%= number_to_currency(0) %></span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">VAT amount</span>
+            <span class="font-semibold text-gray-900"><%= number_to_currency(@order.tax_amount) %></span>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-gray-200">
+            <span class="font-bold text-gray-900">Order total</span>
+            <span class="font-bold text-gray-900"><%= number_to_currency(@order.total_with_tax) %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-only">
+
+    <%# Order header %>
+    <div class="mb-7">
+      <div class="flex items-center gap-3 mb-1">
+        <h1 class="text-2xl font-bold text-gray-900 font-mono tracking-wide"><%= @order.order_number %></h1>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold <%= status_badge %>">
+          <%= @order.status.capitalize %>
+        </span>
+      </div>
+      <p class="text-sm text-gray-400">Placed <%= @order.created_at.strftime("%B %-d, %Y at %-I:%M %p") %></p>
+    </div>
+
+    <%# 2-col layout %>
+    <div class="lg:grid lg:grid-cols-3 lg:gap-7 items-start">
+
+      <%# Left — items + customer %>
+      <div class="lg:col-span-2 space-y-6 mb-6 lg:mb-0">
+
+        <%# Items card %>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-50">
+            <h2 class="font-bold text-gray-800">
+              Items
+              <span class="text-gray-400 font-normal text-sm ml-1">(<%= @order.order_items.sum(:quantity) %>)</span>
+            </h2>
+          </div>
+
+          <div class="hidden md:grid md:grid-cols-[1fr_72px_110px_110px] gap-4 px-6 py-3 bg-gray-50 border-b border-gray-100">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Product</span>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Qty</span>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Unit</span>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Total</span>
+          </div>
+
+          <% @order.order_items.each do |item| %>
+            <% product = item.product %>
+            <% cover = product.image.attached? ? product.image : (product.images.attached? ? product.images.first : nil) %>
+            <div class="flex flex-col md:grid md:grid-cols-[1fr_72px_110px_110px] gap-4 md:items-center px-6 py-5 border-b border-gray-50 last:border-b-0 print-row">
+
+              <div class="flex items-center gap-4 min-w-0">
+                <div class="flex-shrink-0 w-14 h-14 bg-gray-50 rounded-xl border border-gray-100 overflow-hidden print-image">
+                  <% if cover %>
+                    <%= image_tag cover, class: "w-full h-full object-contain p-1.5" %>
+                  <% else %>
+                    <div class="w-full h-full flex items-center justify-center text-gray-200">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  <% end %>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-gray-800 line-clamp-2"><%= product.name %></p>
+                  <% if product.brand.present? %>
+                    <p class="text-xs text-gray-400 mt-0.5"><%= product.brand %></p>
+                  <% end %>
+                </div>
+              </div>
+
+              <div class="flex justify-between md:justify-center items-center">
+                <span class="text-xs text-gray-400 md:hidden">Qty</span>
+                <span class="text-sm font-semibold text-gray-700">× <%= item.quantity %></span>
+              </div>
+
+              <div class="flex justify-between md:justify-end items-center">
+                <span class="text-xs text-gray-400 md:hidden">Unit</span>
+                <span class="text-sm text-gray-600"><%= number_to_currency(item.unit_price) %></span>
+              </div>
+
+              <div class="flex justify-between md:justify-end items-center">
+                <span class="text-xs text-gray-400 md:hidden">Total</span>
+                <span class="text-sm font-bold text-gray-900"><%= number_to_currency(item.unit_price * item.quantity) %></span>
+              </div>
+
+            </div>
+          <% end %>
+
+          <%# Totals footer %>
+          <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+            <div class="flex justify-end">
+              <div class="space-y-1.5 text-sm w-52">
+                <div class="flex justify-between">
+                  <span class="text-gray-500">Subtotal</span>
+                  <span class="font-semibold text-gray-800"><%= number_to_currency(@order.subtotal_price) %></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-500">
+                    VAT (<%= number_with_precision(@order.tax_percent, precision: 2) %>%)
+                    <span class="text-gray-300">·</span>
+                    <span class="uppercase"><%= (@order.tax_region.presence || "international") %></span>
+                  </span>
+                  <span class="font-semibold text-gray-800"><%= number_to_currency(@order.tax_amount) %></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-500">Shipping</span>
+                  <span class="font-semibold text-emerald-600">Free</span>
+                </div>
+                <div class="flex justify-between pt-2 border-t border-gray-200">
+                  <span class="font-bold text-gray-900">Total (incl. VAT)</span>
+                  <span class="font-bold text-gray-900"><%= number_to_currency(@order.total_with_tax) %></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <%# Customer card %>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-50">
+            <h2 class="font-bold text-gray-800">Customer</h2>
+          </div>
+          <div class="px-6 py-5 flex items-start gap-4">
+            <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <span class="text-sm font-bold text-indigo-600">
+                <%= @order.customer.first_name[0].upcase %><%= @order.customer.last_name[0].upcase %>
+              </span>
+            </div>
+            <div class="space-y-0.5 text-sm">
+              <p class="font-bold text-gray-900"><%= @order.customer.full_name %></p>
+              <p class="text-gray-500"><%= @order.customer.email %></p>
+              <% if @order.customer.phone.present? %>
+                <p class="text-gray-500"><%= @order.customer.phone %></p>
+              <% end %>
+              <% if @order.customer.address.present? %>
+                <p class="text-gray-400 pt-2 mt-1 border-t border-gray-50">
+                  <%= @order.customer.address %>
+                  <% if @order.customer.city.present? %>, <%= @order.customer.city %><% end %>
+                  <% if @order.customer.postal_code.present? %> <%= @order.customer.postal_code %><% end %>
+                  <% if @order.customer.country.present? %>, <%= @order.customer.country %><% end %>
+                </p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <%# Right — summary + status %>
+      <div class="lg:col-span-1 space-y-5">
+
+        <%# Details card %>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
+          <h2 class="font-bold text-gray-800 mb-1">Order Details</h2>
+          <div class="space-y-2.5 text-sm">
+            <div class="flex justify-between items-center gap-4">
+              <span class="text-gray-400">Reference</span>
+              <span class="font-mono font-bold text-gray-800 text-xs tracking-wide"><%= @order.order_number %></span>
+            </div>
+            <div class="flex justify-between items-center gap-4">
+              <span class="text-gray-400">Placed</span>
+              <span class="font-semibold text-gray-700"><%= @order.created_at.strftime("%b %-d, %Y") %></span>
+            </div>
+            <div class="flex justify-between items-center gap-4">
+              <span class="text-gray-400">Items</span>
+              <span class="font-semibold text-gray-700"><%= @order.order_items.sum(:quantity) %></span>
+            </div>
+            <div class="flex justify-between items-center gap-4">
+              <span class="text-gray-400">VAT</span>
+              <span class="font-semibold text-gray-700">
+                <%= number_with_precision(@order.tax_percent, precision: 2) %>%
+                <span class="text-gray-300">·</span>
+                <span class="uppercase"><%= (@order.tax_region.presence || "international") %></span>
+              </span>
+            </div>
+            <div class="flex justify-between items-center gap-4 pt-2 border-t border-gray-50">
+              <span class="text-gray-400">Status</span>
+              <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold <%= status_badge %>">
+                <%= @order.status.capitalize %>
+              </span>
+            </div>
+            <div class="flex justify-between items-center gap-4 pt-2 border-t border-gray-50">
+              <span class="font-bold text-gray-900">Total (incl. VAT)</span>
+              <span class="font-bold text-gray-900 text-lg"><%= number_to_currency(@order.total_with_tax) %></span>
+            </div>
+          </div>
+        </div>
+
+        <%# Status update card — hidden when printing %>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 no-print">
+          <h2 class="font-bold text-gray-800 mb-4">Update Status</h2>
+          <div class="space-y-2">
+            <% Order::STATUSES.each do |s| %>
+              <%
+                is_current = @order.status == s
+                pill_class = case s
+                when "pending"   then is_current ? "bg-amber-500 text-white"   : "bg-amber-100 text-amber-700"
+                when "paid"      then is_current ? "bg-blue-500 text-white"    : "bg-blue-100 text-blue-700"
+                when "shipped"   then is_current ? "bg-indigo-500 text-white"  : "bg-indigo-100 text-indigo-700"
+                when "delivered" then is_current ? "bg-emerald-500 text-white" : "bg-emerald-100 text-emerald-700"
+                when "cancelled" then is_current ? "bg-gray-500 text-white"    : "bg-gray-100 text-gray-500"
+                else                  "bg-gray-100 text-gray-400"
+                end
+              %>
+              <% if is_current %>
+                <div class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border-2 border-indigo-400 bg-indigo-50/60 text-sm font-semibold">
+                  <span class="text-indigo-700 capitalize"><%= s %></span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-indigo-400 text-xs font-normal">current</span>
+                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-bold <%= pill_class %>"><%= s.capitalize %></span>
+                  </div>
+                </div>
+              <% else %>
+                <%= button_to admin_order_path(@order), method: :patch,
+                    params: { order: { status: s } },
+                    class: "w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/30 text-sm font-semibold transition-all cursor-pointer text-left" do %>
+                  <span class="text-gray-700 capitalize"><%= s %></span>
+                  <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-bold <%= pill_class %>"><%= s.capitalize %></span>
+                <% end %>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+            </div>
+
+          </div>
+
+      </div>
+    </div>
+
+    </div>
+
+  </div>
+</div>
+
+<style>
+@page { margin: 8mm; }
+
+.print-only { display: none; }
+.screen-only { display: block; }
+
+@media print {
+  body * { visibility: hidden; }
+  .print-container, .print-container * { visibility: visible; }
+  .print-container { position: absolute; left: 0; top: 0; width: 100%; background: white !important; padding: 0 !important; }
+  .no-print { display: none !important; }
+  .screen-only { display: none !important; }
+  .print-only { display: block !important; }
+  .print-container { font-size: 11px; line-height: 1.3; }
+  .print-row { page-break-inside: avoid; }
+  .print-image { width: 32px !important; height: 32px !important; }
+}
+</style>

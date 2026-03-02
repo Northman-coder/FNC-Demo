@@ -1,0 +1,9 @@
+one:
+  customer: one
+  total_price: 100.0
+  status: pending
+
+two:
+  customer: one
+  total_price: 50.0
+  status: shipped

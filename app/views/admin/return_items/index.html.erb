@@ -1,0 +1,32 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <div class="max-w-5xl mx-auto">
+    <h1 class="text-3xl font-bold text-indigo-800 mb-6">Returned Items</h1>
+
+    <table class="w-full bg-white rounded-lg shadow-sm table-auto">
+      <thead>
+        <tr class="bg-gray-50">
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">#</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Product</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Customer</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Qty</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Status</th>
+          <th class="px-4 py-2"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @return_items.each do |ri| %>
+          <tr class="border-t">
+            <td class="px-4 py-3 text-sm text-gray-800"><%= ri.id %></td>
+            <td class="px-4 py-3 text-sm text-gray-800"><%= ri.product.name %></td>
+            <td class="px-4 py-3 text-sm text-gray-800"><%= ri.customer.full_name %></td>
+            <td class="px-4 py-3 text-sm text-gray-800"><%= ri.quantity %></td>
+            <td class="px-4 py-3 text-sm text-gray-800 capitalize"><%= ri.status %></td>
+            <td class="px-4 py-3 text-sm text-right">
+              <%= link_to "View", admin_return_item_path(ri), class: "text-indigo-600 hover:underline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

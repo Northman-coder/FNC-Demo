@@ -1,0 +1,587 @@
+<% content_for :title, "FNC Best Products" %>
+
+<% free_shipping_threshold = free_shipping_threshold_display %>
+
+<div class="w-full">
+
+  <%# ============================================================
+      Hero — full-width video banner with lighter overlay
+      ============================================================ %>
+  <div class="relative w-full min-h-[380px] md:min-h-[480px] overflow-hidden flex items-center justify-center">
+    <video id="hero-video" autoplay muted playsinline class="absolute inset-0 w-full h-full object-cover"
+           data-video-urls="<%= ['promo1.mp4','promo2.mp4','promo3.mp4'].map { |f| asset_path(f) }.join(',') %>">
+      <source src="<%= asset_path 'promo1.mp4' %>" type="video/mp4">
+    </video>
+    <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/35 to-black/65"></div>
+    <div class="relative z-10 flex flex-col items-center justify-center text-white text-center px-6 py-12 max-w-3xl mx-auto">
+      <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold mb-5 drop-shadow leading-tight tracking-tight">
+        Discover Amazing<br>
+        <span class="text-indigo-200">Products</span>
+      </h1>
+      <p class="text-lg md:text-xl text-white/70 mb-10 max-w-xl leading-relaxed">
+        Free shipping over <%= free_shipping_threshold %>. Great prices. Quality you can trust.
+      </p>
+      <%= link_to "Shop Now", "#products",
+          class: "bg-white text-gray-900 font-bold px-8 py-3.5 rounded-full text-base shadow-xl hover:bg-gray-100 transition-all duration-300 hover:-translate-y-0.5" %>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('turbo:load', function() {
+      var vid = document.getElementById('hero-video');
+      if (!vid) return;
+      var urls = vid.dataset.videoUrls.split(',');
+      var idx = 0;
+      vid.addEventListener('ended', function() {
+        idx = (idx + 1) % urls.length;
+        vid.querySelector('source').src = urls[idx];
+        vid.load();
+        vid.play();
+      });
+    });
+  </script>
+
+  <%# When showing a filtered listing (category/new arrivals/exclusive deals), show ONLY the product grid below the hero/ad. %>
+  <% unless @filtered_listing %>
+    <%# ============================================================
+        Trust bar
+        ============================================================ %>
+    <div class="bg-white border-b border-gray-100">
+      <div class="max-w-screen-xl mx-auto px-6 py-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div class="flex items-center justify-center gap-2 text-xs text-gray-500">
+            <svg class="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+            </svg>
+            <span class="font-medium">Free Delivery over <%= free_shipping_threshold %></span>
+          </div>
+          <div class="flex items-center justify-center gap-2 text-xs text-gray-500">
+            <svg class="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span class="font-medium"><%= homepage_section_text("guarantee_label", :label, fallback: "5-Year Guarantee") %></span>
+          </div>
+          <div class="flex items-center justify-center gap-2 text-xs text-gray-500">
+            <svg class="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span class="font-medium">Easy Returns</span>
+          </div>
+          <div class="flex items-center justify-center gap-2 text-xs text-gray-500">
+            <svg class="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span class="font-medium">Secure Checkout</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# ============================================================
+        Shop by Category — 1800lighting style
+        White background, square tiles, text BELOW image (no overlay),
+        3 columns on desktop (9 items → 3 full rows).
+        ============================================================ %>
+    <% if @categories&.any? %>
+      <section id="categories" class="w-full bg-white py-14 border-b border-gray-100">
+        <div class="max-w-screen-xl mx-auto px-6">
+
+          <div class="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-6">
+            <% @categories.each_with_index do |category, idx| %>
+              <% md_span_class = (idx < 2 ? "md:col-span-3" : "md:col-span-2") %>
+
+              <div class="<%= md_span_class %>">
+                <%= render partial: "products/category_tile", locals: { category: category, big: (idx < 2) } %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </section>
+    <% end %>
+
+
+    <%# ============================================================
+        Editorial promo tiles — 1800lighting's "Bathroom Glow-Up" style
+        Two side-by-side promotional blocks.
+        ============================================================ %>
+    <section class="w-full bg-white py-14">
+      <div class="max-w-screen-xl mx-auto px-6">
+        <div class="grid sm:grid-cols-2 gap-5">
+
+          <%# Promo tile 1 — New Arrivals, configurable via HomepageSection %>
+          <% new_arrivals = HomepageSection.find_by(identifier: "new_arrivals") %>
+          <%= link_to new_arrivals_path(anchor: "products"), class: "group relative overflow-hidden rounded-2xl block h-72 md:h-80" do %>
+            <% if new_arrivals&.image&.attached? %>
+              <div class="absolute inset-0">
+                <%= image_tag new_arrivals.image, class: "w-full h-full object-cover", alt: (new_arrivals&.headline.presence || "New arrivals"), loading: "lazy", decoding: "async" %>
+                <div class="absolute inset-0 bg-black/40"></div>
+              </div>
+            <% else %>
+              <div class="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900"></div>
+            <% end %>
+            <div class="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-transparent"></div>
+            <div class="absolute inset-0 flex flex-col justify-end p-7 md:p-9">
+              <p class="text-white/70 text-[11px] font-bold uppercase tracking-widest mb-2"><%= new_arrivals&.label || "New This Season" %></p>
+              <h3 class="text-white text-2xl md:text-3xl font-bold leading-tight mb-5">
+                <% headline = (new_arrivals&.headline.presence || "Latest Arrivals Just Landed") %>
+                <% headline = headline.gsub(/\bLatest\s+Arrival/i, "Latest Arrivals") %>
+                <% headline = headline.gsub(/\bArrival(s+)?\s*Just\b/i, "Arrivals Just") %>
+                <% headline = headline.gsub(/\bJust\s*Landed\b/i, "Just Landed") %>
+                <%= headline.gsub("\n","<br>").html_safe %>
+              </h3>
+              <span class="inline-flex items-center gap-2 bg-white text-gray-900 font-bold text-sm px-5 py-2.5 rounded-full self-start group-hover:bg-gray-100 transition-colors shadow-md">
+                <%= new_arrivals&.link_text || "Shop New Arrivals" %>
+                <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
+            </div>
+          <% end %>
+
+          <%# Promo tile 2 — Exclusive Deals, configurable %>
+          <% deals = HomepageSection.find_by(identifier: "exclusive_deals") %>
+          <%= link_to exclusive_deals_path(anchor: "products"), class: "group relative overflow-hidden rounded-2xl block h-72 md:h-80" do %>
+            <% if deals&.image&.attached? %>
+              <div class="absolute inset-0">
+                <%= image_tag deals.image, class: "w-full h-full object-cover", alt: (deals&.headline.presence || "Exclusive deals"), loading: "lazy", decoding: "async" %>
+                <div class="absolute inset-0 bg-black/40"></div>
+              </div>
+            <% else %>
+              <div class="absolute inset-0 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900"></div>
+            <% end %>
+            <div class="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-transparent"></div>
+            <%# Decorative circle accent %>
+            <div class="absolute -top-16 -right-16 w-64 h-64 bg-indigo-700/20 rounded-full blur-2xl"></div>
+            <div class="absolute inset-0 flex flex-col justify-end p-7 md:p-9">
+              <p class="text-white/70 text-[11px] font-bold uppercase tracking-widest mb-2"><%= deals&.label || "Limited Time Offers" %></p>
+              <h3 class="text-white text-2xl md:text-3xl font-bold leading-tight mb-5">
+                <% deals_headline = (deals&.headline || "Exclusive Deals & Discounts") %>
+                <% deals_headline = deals_headline.gsub(/Deals\s*&/i, "Deals &") %>
+                <%= deals_headline.gsub("\n","<br>").html_safe %>
+              </h3>
+              <span class="inline-flex items-center gap-2 bg-white text-gray-900 font-bold text-sm px-5 py-2.5 rounded-full self-start group-hover:bg-gray-100 transition-colors shadow-md">
+                <%= deals&.link_text || "View All Offers" %>
+                <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
+            </div>
+          <% end %>
+
+        </div>
+      </div>
+    </section>
+
+    <%# ============================================================
+        Full-width editorial split — image left / text right
+        (Like 1800lighting's "Well-Lit & Well-Loved" sections)
+        ============================================================ %>
+    <section class="w-full">
+      <div class="max-w-screen-xl mx-auto px-6 py-14">
+        <div class="grid md:grid-cols-2 overflow-hidden rounded-2xl shadow-sm border border-gray-100">
+
+          <%# Left: large image / rich gradient block configured via homepage section %>
+          <% catalog = HomepageSection.find_by(identifier: "catalog_stats") %>
+          <div class="relative min-h-[280px] md:min-h-[360px] overflow-hidden <%= catalog&.image&.attached? ? "" : "bg-slate-900" %>
+">
+            <% if catalog&.image&.attached? %>
+              <%= image_tag catalog.image, class: "absolute inset-0 w-full h-full object-cover", alt: (catalog&.description.presence || "Catalog"), loading: "lazy", decoding: "async" %>
+              <div class="absolute inset-0 bg-black/50"></div>
+            <% else %>
+              <div class="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 opacity-90"></div>
+              <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 30% 50%, white 1px, transparent 1px); background-size: 24px 24px;"></div>
+            <% end %>
+            <div class="absolute inset-0 flex items-center justify-center p-10">
+              <div class="text-center text-white">
+                <svg class="w-16 h-16 text-white/40 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                </svg>
+                <p class="text-white/70 text-sm font-medium tracking-wide">
+                  <%= catalog&.description.presence || "500+ Products &bull; 50+ Brands" %>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <%# Right: text content %>
+          <div class="bg-gray-50 flex flex-col justify-center px-8 md:px-12 py-12 md:py-0">
+            <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">Our Promise</p>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight">
+              Quality You Can<br>Trust Every Time
+            </h2>
+            <p class="text-gray-500 text-sm md:text-base leading-relaxed mb-8 max-w-sm">
+              Every product is hand-picked for quality and value. Shop with confidence knowing you're getting the very best.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <%= link_to "Shop Now", products_path(anchor: "products"),
+                  class: "inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-bold px-6 py-3 rounded-full transition-colors text-sm" %>
+              <%= link_to "About Us", about_path,
+                  class: "inline-flex items-center justify-center gap-2 border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold px-6 py-3 rounded-full transition-colors text-sm" %>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <%# ============================================================
+        Recommendations carousel
+        ============================================================ %>
+    <% if @recommendations.present? %>
+      <section id="recommendations" class="w-full bg-white py-14 border-t border-gray-100">
+        <div class="max-w-screen-xl mx-auto px-6">
+
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900">Our Best Offers</h2>
+              <p class="text-gray-400 text-sm mt-1">Hand-picked deals on top products</p>
+            </div>
+          </div>
+
+          <div class="relative">
+            <button aria-label="Scroll recommendations left" aria-controls="rec-track"
+                    data-carousel-dir="-1"
+                    class="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm">
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button aria-label="Scroll recommendations right" aria-controls="rec-track"
+                  data-carousel-dir="1"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm">
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <div id="rec-track" class="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth py-1 px-12">
+              <% @recommendations.each do |product| %>
+                <div class="flex-none w-52">
+                  <%= render product, show_price_first: true %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <div id="rec-dots" class="flex justify-center items-center gap-2 mt-5"></div>
+        </div>
+      </section>
+    <% end %>
+
+    <%# ============================================================
+        New Arrivals carousel
+        ============================================================ %>
+    <% if @new_arrivals.any? %>
+      <section class="w-full bg-gray-50 py-14 border-t border-gray-100">
+        <div class="max-w-screen-xl mx-auto px-6">
+
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900">New Arrivals</h2>
+              <p class="text-gray-400 text-sm mt-1">The latest additions to our collection</p>
+            </div>
+          </div>
+
+          <div class="relative">
+            <button aria-label="Scroll new arrivals left" aria-controls="new-track"
+                    data-carousel-dir="-1"
+                    class="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm">
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button aria-label="Scroll new arrivals right" aria-controls="new-track"
+                  data-carousel-dir="1"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm">
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <div id="new-track" class="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth py-1 px-12">
+              <% @new_arrivals.each do |product| %>
+                <div class="flex-none w-52">
+                  <%= render product, show_price_first: true %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <div id="new-dots" class="flex justify-center items-center gap-2 mt-5"></div>
+        </div>
+      </section>
+    <% end %>
+
+    <%# Carousel pagination dots %>
+    <script>
+    (function () {
+      function initCarouselDots(trackId, dotsId) {
+        var track = document.getElementById(trackId);
+        var wrap  = document.getElementById(dotsId);
+        if (!track || !wrap) return;
+
+        var raf = null;
+
+        function pageWidth() {
+          return Math.max(track.clientWidth, 1);
+        }
+
+        function pageCount() {
+          return Math.max(1, Math.ceil(track.scrollWidth / pageWidth()));
+        }
+
+        function clampPage(p) {
+          return Math.max(0, Math.min(pageCount() - 1, p));
+        }
+
+        function scrollToPage(p) {
+          var idx = clampPage(p);
+          track.scrollTo({ left: idx * pageWidth(), behavior: 'smooth' });
+        }
+
+        function activePage() {
+          return clampPage(Math.round(track.scrollLeft / pageWidth()));
+        }
+
+        function bindArrows() {
+          var btns = document.querySelectorAll('button[aria-controls="' + trackId + '"][data-carousel-dir]');
+          btns.forEach(function (btn) {
+            if (btn.dataset.carouselBound === '1') return;
+            btn.dataset.carouselBound = '1';
+            btn.addEventListener('click', function () {
+              var dir = parseInt(btn.getAttribute('data-carousel-dir') || '0', 10);
+              if (!dir) return;
+              scrollToPage(activePage() + dir);
+            });
+          });
+        }
+
+        function buildDots() {
+          bindArrows();
+
+          var count = pageCount();
+          if (count < 2) { wrap.innerHTML = ''; return; }
+          wrap.innerHTML = '';
+          for (var i = 0; i < count; i++) {
+            var btn = document.createElement('button');
+            btn.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            (function (idx) {
+              btn.addEventListener('click', function () {
+                scrollToPage(idx);
+              });
+            })(i);
+            wrap.appendChild(btn);
+          }
+          refreshDots();
+        }
+
+        function refreshDots() {
+          if (raf) cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(function () {
+            var btns = wrap.querySelectorAll('button');
+            if (!btns.length) return;
+            var active = activePage();
+            btns.forEach(function (b, i) {
+              b.className = i === active
+              ? 'h-2 w-5 rounded-full bg-gray-800 transition-all duration-200'
+              : 'h-2 w-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all duration-200';
+            });
+          });
+        }
+
+        track.addEventListener('scroll', refreshDots, { passive: true });
+        window.addEventListener('resize', buildDots);
+        setTimeout(buildDots, 150);
+      }
+
+      function run() {
+        initCarouselDots('rec-track', 'rec-dots');
+        initCarouselDots('new-track', 'new-dots');
+      }
+
+      document.addEventListener('turbo:load', run);
+      if (document.readyState !== 'loading') run();
+    })();
+    </script>
+  <% end %>
+
+  <%# ============================================================
+      Product grid — all items
+      ============================================================ %>
+  <section id="products" class="w-full">
+    <div class="max-w-screen-xl mx-auto px-6 py-14">
+      <div class="lg:grid lg:grid-cols-12 lg:gap-6">
+
+        <%# Categories sidebar %>
+        <aside class="hidden lg:block lg:col-span-3">
+          <div class="sticky top-[84px]">
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div class="px-5 pt-5 pb-3 border-b border-gray-100">
+                <div class="flex items-baseline justify-between gap-3">
+                  <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Categories</p>
+                  <% if (@sidebar_categories || []).any? %>
+                    <span class="text-xs font-semibold text-gray-400"><%= (@sidebar_categories || []).size + 1 %></span>
+                  <% end %>
+                </div>
+                <p class="mt-1 text-sm font-semibold text-gray-800">Browse</p>
+              </div>
+
+              <div class="p-3">
+                <% active_category = params[:category].to_s.presence %>
+                <% active_sort = params[:sort].to_s.presence %>
+                <% all_active = active_category.blank? && params[:query].blank? %>
+
+                <nav class="max-h-[70vh] overflow-auto pr-1">
+                  <div class="flex flex-col gap-1">
+                    <%= link_to products_path(sort: active_sort, anchor: "products"),
+                        aria: { current: (all_active ? "page" : nil) },
+                        class: "group relative flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 #{all_active ? 'bg-primary-light text-primary' : 'text-gray-700 hover:bg-gray-50'}" do %>
+                      <span class="truncate">All products</span>
+                      <span class="ml-3 h-2 w-2 rounded-full #{all_active ? 'bg-primary' : 'bg-transparent group-hover:bg-gray-300'}"></span>
+                    <% end %>
+
+                    <% (@sidebar_categories || []).each do |category_name| %>
+                      <% is_active = (active_category == category_name) %>
+                      <%= link_to products_path(category: category_name, sort: active_sort, anchor: "products"),
+                          aria: { current: (is_active ? "page" : nil) },
+                          class: "group relative flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 #{is_active ? 'bg-primary-light text-primary' : 'text-gray-700 hover:bg-gray-50'}" do %>
+                        <span class="truncate"><%= category_name %></span>
+                        <span class="ml-3 h-2 w-2 rounded-full #{is_active ? 'bg-primary' : 'bg-transparent group-hover:bg-gray-300'}"></span>
+                      <% end %>
+                    <% end %>
+                  </div>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <%# Main products column %>
+        <div class="lg:col-span-9">
+          <% if @filtered_listing %>
+            <div class="flex items-center gap-3 mb-8">
+              <div class="w-1 h-7 bg-blue-700 rounded-full"></div>
+              <h2 class="text-xl font-bold text-gray-900"><%= params[:category].presence || @title.presence || "All products" %></h2>
+              <%= link_to products_path(sort: params[:sort].presence, anchor: "products"), class: "ml-auto text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1" do %>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear filter
+              <% end %>
+            </div>
+          <% end %>
+
+          <%# Mobile category pills %>
+          <div class="lg:hidden mb-6">
+            <% active_category = params[:category].to_s.presence %>
+            <% active_sort = params[:sort].to_s.presence %>
+            <% all_active = active_category.blank? && params[:query].blank? %>
+
+            <div class="bg-white rounded-2xl border border-gray-200 p-3 shadow-sm">
+              <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Categories</p>
+              <div class="flex gap-2 overflow-x-auto scrollbar-hide py-1">
+                <%= link_to "All", products_path(sort: active_sort, anchor: "products"),
+                    aria: { current: (all_active ? "page" : nil) },
+                    class: "flex-none px-4 py-2 rounded-full text-sm font-semibold border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 #{all_active ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}" %>
+                <% (@sidebar_categories || []).each do |category_name| %>
+                  <% is_active = (active_category == category_name) %>
+                  <%= link_to category_name, products_path(category: category_name, sort: active_sort, anchor: "products"),
+                      aria: { current: (is_active ? "page" : nil) },
+                      class: "flex-none px-4 py-2 rounded-full text-sm font-semibold border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 #{is_active ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}" %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <%# Sort + results bar %>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+            <div class="text-sm text-gray-500">
+              <% if defined?(@pagy) %>
+                Showing <span class="font-semibold text-gray-800"><%= @pagy.from %>–<%= @pagy.to %></span> of <span class="font-semibold text-gray-800"><%= @pagy.count %></span>
+              <% end %>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <%= form_with url: url_for(anchor: "products"), method: :get, local: true, class: "flex items-center gap-2" do %>
+                <%# preserve current filters %>
+                <%= hidden_field_tag :query, params[:query] if params[:query].present? %>
+                <%= hidden_field_tag :category, params[:category] if params[:category].present? %>
+
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Sort</label>
+                <%= select_tag :sort,
+                    options_for_select(
+                      [
+                        ["Newest", "newest"],
+                        ["Price: Low to High", "price_asc"],
+                        ["Price: High to Low", "price_desc"],
+                        ["Name: A to Z", "name_asc"],
+                        ["Biggest discount", "discount_desc"]
+                      ],
+                      (params[:sort].presence || "newest")
+                    ),
+                    class: "rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-0 focus:border-primary",
+                    onchange: "this.form.requestSubmit()" %>
+              <% end %>
+
+              <% if params[:sort].present? && params[:sort] != 'newest' %>
+                <%= link_to "Reset", url_for(request.query_parameters.except(:sort, :page).merge(anchor: "products")),
+                    class: "text-sm font-semibold text-gray-400 hover:text-gray-600" %>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
+            <% @products.each do |product| %>
+              <%= render product %>
+            <% end %>
+          </div>
+
+          <% if defined?(@pagy) && @pagy.pages > 1 %>
+            <nav class="mt-10 flex items-center justify-center" aria-label="Pagination">
+              <% qp = request.query_parameters %>
+              <% current = @pagy.page %>
+              <% last = @pagy.pages %>
+              <% window = 2 %>
+              <% page_list = ([1] + ((current - window)..(current + window)).to_a + [last]).select { |p| p.is_a?(Integer) && p >= 1 && p <= last }.uniq.sort %>
+
+              <div class="inline-flex items-center gap-1.5 rounded-full bg-white border border-gray-200 px-2 py-2 shadow-sm">
+                <% if @pagy.prev %>
+                  <%= link_to "Prev", url_for(qp.merge(page: @pagy.prev, anchor: "products")),
+                      class: "px-3 py-1.5 rounded-full text-sm font-semibold text-gray-700 hover:bg-gray-50 border border-transparent" %>
+                <% else %>
+                  <span class="px-3 py-1.5 rounded-full text-sm font-semibold text-gray-300 cursor-not-allowed">Prev</span>
+                <% end %>
+
+                <% prev_page = nil %>
+                <% page_list.each do |p| %>
+                  <% if prev_page && p > prev_page + 1 %>
+                    <span class="px-2 text-gray-300">…</span>
+                  <% end %>
+
+                  <% if p == current %>
+                    <span aria-current="page" class="px-3 py-1.5 rounded-full text-sm font-bold bg-primary text-white"><%= p %></span>
+                  <% else %>
+                    <%= link_to p, url_for(qp.merge(page: p, anchor: "products")),
+                        class: "px-3 py-1.5 rounded-full text-sm font-semibold text-gray-700 hover:bg-gray-50" %>
+                  <% end %>
+
+                  <% prev_page = p %>
+                <% end %>
+
+                <% if @pagy.next %>
+                  <%= link_to "Next", url_for(qp.merge(page: @pagy.next, anchor: "products")),
+                      class: "px-3 py-1.5 rounded-full text-sm font-semibold text-gray-700 hover:bg-gray-50 border border-transparent" %>
+                <% else %>
+                  <span class="px-3 py-1.5 rounded-full text-sm font-semibold text-gray-300 cursor-not-allowed">Next</span>
+                <% end %>
+              </div>
+            </nav>
+          <% end %>
+        </div>
+      </div>
+
+      <%# pagination omitted earlier - showing link to all? if original lacked pagination, we close here %>
+    </div>
+  </section>
+
+</div>

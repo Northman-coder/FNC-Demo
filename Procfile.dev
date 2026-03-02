@@ -1,0 +1,4 @@
+web: bin/rails server -p ${PORT:-3000} -P tmp/pids/server-${PORT:-3000}.pid
+css: bin/rails tailwindcss:watch
+admin_css: bin/rails tailwindcss:watch_active_admin
+worker: sh -lc 'if [ -n "${REDIS_URL:-}" ]; then bundle exec sidekiq -C config/sidekiq.yml; else echo "Skipping Sidekiq (set REDIS_URL to enable)"; sleep infinity; fi'

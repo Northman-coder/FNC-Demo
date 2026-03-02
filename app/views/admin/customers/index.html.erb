@@ -1,0 +1,30 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-indigo-800 mb-6">Customers</h1>
+
+    <table class="w-full table-auto bg-white rounded-lg shadow-sm">
+      <thead>
+        <tr class="bg-gray-50">
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Name</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Email</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Phone</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">City</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Country</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Joined</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @customers.each do |c| %>
+          <tr class="border-t">
+            <td class="px-4 py-3 text-sm text-gray-800"><%= c.full_name %></td>
+            <td class="px-4 py-3 text-sm text-gray-800"><%= c.email %></td>
+            <td class="px-4 py-3 text-sm text-gray-800"><%= c.phone.presence || "-" %></td>
+            <td class="px-4 py-3 text-sm text-gray-800"><%= c.city.presence || "-" %></td>
+            <td class="px-4 py-3 text-sm text-gray-800"><%= c.country.presence || "-" %></td>
+            <td class="px-4 py-3 text-sm text-gray-600"><%= c.created_at.to_date %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

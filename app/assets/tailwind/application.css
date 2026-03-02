@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@config "../../../config/tailwind.config.js";
+
+@theme {
+  --color-primary: #4338ca;         /* indigo-700 — deep, professional */
+  --color-primary-dark: #3730a3;    /* indigo-800 — hover/active state */
+  --color-primary-light: #eef2ff;   /* indigo-50  — subtle tinted hover bg */
+  --color-secondary: #dc2626;       /* red-600    — sale badges & discount prices */
+  --color-accent: #059669;          /* emerald-600 — NEW badge */
+}
+
+
+@font-face {
+    font-family: "Sparkling";
+    src: url("/fonts/SparklingValentine.ttf");
+}
+
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+@utility line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}

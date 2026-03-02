@@ -1,0 +1,14 @@
+<h2>Email Address Changed</h2>
+<p class="lead">Hi <%= @email %>,</p>
+
+<% if @resource.try(:unconfirmed_email?) %>
+  <p class="lead">We're notifying you that your email address is being changed to <strong><%= @resource.unconfirmed_email %></strong>. You'll need to confirm the new address before the change takes effect.</p>
+<% else %>
+  <p class="lead">We're notifying you that your email address has been successfully changed to <strong><%= @resource.email %></strong>.</p>
+<% end %>
+
+<hr class="divider">
+
+<p class="lead" style="font-size:13px; color:#9ca3af;">
+  If you did not make this change, please contact us immediately.
+</p>

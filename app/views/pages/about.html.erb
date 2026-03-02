@@ -1,0 +1,98 @@
+<% content_for :title, "About Us" %>
+
+<div class="w-full">
+
+  <%# Hero %>
+  <div class="relative bg-gradient-to-br from-indigo-900 via-indigo-700 to-purple-700 text-white py-24 px-6 text-center overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+      <div class="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl"></div>
+      <div class="absolute bottom-10 right-10 w-64 h-64 bg-purple-300 rounded-full blur-3xl"></div>
+    </div>
+    <div class="relative z-10 max-w-2xl mx-auto">
+      <span class="inline-flex items-center gap-2 bg-white/15 border border-white/25 text-indigo-200 font-semibold text-xs uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
+        Who we are
+      </span>
+      <h1 class="text-5xl md:text-6xl font-bold mb-5 leading-tight">About Us</h1>
+      <p class="text-indigo-200 text-lg md:text-xl max-w-xl mx-auto leading-relaxed">
+        We are passionate about bringing you the best products at the best prices, delivered fast to your door.
+      </p>
+    </div>
+  </div>
+
+  <%# Mission section %>
+  <div class="max-w-5xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-16 items-center">
+    <div>
+      <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest">Our Mission</span>
+      <h2 class="text-3xl font-bold text-gray-900 mt-3 mb-5 leading-snug">Making quality products accessible to everyone</h2>
+      <p class="text-gray-500 leading-relaxed mb-4">
+        We started with one simple goal: make quality products accessible to everyone. Whether you are looking for everyday essentials or something special, we curate every item in our store with care.
+      </p>
+      <p class="text-gray-500 leading-relaxed">
+        We believe shopping should be simple, honest, and enjoyable. No hidden fees, no surprises — just great products and straightforward service.
+      </p>
+    </div>
+    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-8 flex flex-col gap-6 border border-indigo-100/50">
+      <div class="flex items-start gap-4">
+        <div class="bg-indigo-600 text-white rounded-2xl p-3 flex-shrink-0 shadow-sm shadow-indigo-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <p class="font-bold text-gray-800 mb-0.5">Quality Guaranteed</p>
+          <p class="text-sm text-gray-500 leading-relaxed">Every product is vetted before it hits our shelves.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-4">
+        <div class="bg-indigo-600 text-white rounded-2xl p-3 flex-shrink-0 shadow-sm shadow-indigo-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+          </svg>
+        </div>
+        <div>
+          <p class="font-bold text-gray-800 mb-0.5">Fast Delivery</p>
+          <p class="text-sm text-gray-500 leading-relaxed">We dispatch orders quickly so you get them sooner.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-4">
+        <div class="bg-indigo-600 text-white rounded-2xl p-3 flex-shrink-0 shadow-sm shadow-indigo-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+          </svg>
+        </div>
+        <div>
+          <p class="font-bold text-gray-800 mb-0.5">Customer First</p>
+          <p class="text-sm text-gray-500 leading-relaxed">Your satisfaction is the measure of our success.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Stats bar %>
+  <div class="bg-gray-950 text-white py-16 px-6">
+    <div class="max-w-3xl mx-auto grid grid-cols-3 gap-8 text-center">
+      <div>
+        <p class="text-4xl font-bold text-indigo-400 mb-2">500+</p>
+        <p class="text-gray-400 text-sm font-medium">Products</p>
+      </div>
+      <div>
+        <p class="text-4xl font-bold text-indigo-400 mb-2">10k+</p>
+        <p class="text-gray-400 text-sm font-medium">Happy Customers</p>
+      </div>
+      <div>
+        <p class="text-4xl font-bold text-indigo-400 mb-2">50+</p>
+        <p class="text-gray-400 text-sm font-medium">Brands</p>
+      </div>
+    </div>
+  </div>
+
+  <%# CTA %>
+  <div class="text-center py-20 px-6 bg-white">
+    <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest">Ready to shop?</span>
+    <h2 class="text-3xl font-bold text-gray-900 mt-3 mb-4">Find something you love</h2>
+    <p class="text-gray-500 mb-8 max-w-sm mx-auto">Browse our full collection of hand-picked products at unbeatable prices.</p>
+    <%= link_to "Shop Now", products_path,
+        class: "inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-9 py-4 rounded-full transition-all shadow-md hover:shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5" %>
+  </div>
+
+</div>

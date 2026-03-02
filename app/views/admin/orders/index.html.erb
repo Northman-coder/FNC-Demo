@@ -1,0 +1,137 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <div class="max-w-6xl mx-auto">
+
+    <%# Header %>
+    <div class="flex items-start sm:items-center justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Orders</h1>
+        <p class="text-sm text-gray-400 mt-0.5">
+          <%= @orders.size %> <%= @orders.size == 1 ? "order" : "orders" %>
+          <% if params[:status].present? %>
+            <span class="text-gray-300">·</span>
+            <span class="capitalize"><%= params[:status] %></span>
+          <% end %>
+        </p>
+      </div>
+
+      <%= link_to admin_dashboard_path,
+          class: "inline-flex items-center gap-2 bg-white border border-gray-200 hover:border-indigo-300 hover:text-indigo-600 text-gray-500 text-sm font-medium px-4 py-2 rounded-xl transition-all shadow-sm" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Dashboard
+      <% end %>
+    </div>
+
+    <%# Flash messages %>
+    <% if notice.present? %>
+      <div class="mb-5 bg-white border border-emerald-200 text-emerald-700 rounded-2xl px-5 py-3 text-sm font-medium">
+        <%= notice %>
+      </div>
+    <% end %>
+    <% if alert.present? %>
+      <div class="mb-5 bg-white border border-red-200 text-red-700 rounded-2xl px-5 py-3 text-sm font-medium">
+        <%= alert %>
+      </div>
+    <% end %>
+
+    <%# Status filter tabs %>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-2 mb-6">
+      <div class="flex flex-wrap gap-2">
+        <% ([["All", nil]] + Order::STATUSES.map { |s| [s.capitalize, s] }).each do |label, value| %>
+          <%
+            active = params[:status] == value || (value.nil? && params[:status].blank?)
+            tab_class = active \
+              ? "bg-indigo-600 text-white font-semibold" \
+              : "bg-white text-gray-500 hover:text-gray-800 border border-gray-200"
+          %>
+          <%= link_to label,
+              value ? admin_orders_path(status: value) : admin_orders_path,
+              class: "px-4 py-1.5 rounded-full text-sm transition-all #{tab_class}" %>
+        <% end %>
+      </div>
+    </div>
+
+    <% if @orders.empty? %>
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm text-center py-20">
+        <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <p class="text-gray-400 text-sm">No orders found.</p>
+      </div>
+    <% else %>
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Order</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Customer</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Total</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Placed</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Action</th>
+              </tr>
+            </thead>
+
+            <tbody class="divide-y divide-gray-100">
+              <% @orders.each do |order| %>
+                <%
+                  badge = case order.status
+                  when "pending"   then "bg-amber-100 text-amber-700"
+                  when "paid"      then "bg-blue-100 text-blue-700"
+                  when "shipped"   then "bg-indigo-100 text-indigo-700"
+                  when "delivered" then "bg-emerald-100 text-emerald-700"
+                  when "cancelled" then "bg-gray-100 text-gray-500"
+                  else                  "bg-gray-100 text-gray-500"
+                  end
+                %>
+
+                <tr class="bg-white hover:bg-indigo-50/30 transition-colors">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="space-y-0.5">
+                      <%= link_to order.order_number,
+                          admin_order_path(order),
+                          class: "font-mono text-xs font-bold text-gray-600 tracking-wide hover:text-indigo-700 transition-colors" %>
+                      <p class="text-xs text-gray-400">#<%= order.id %></p>
+                    </div>
+                  </td>
+
+                  <td class="px-6 py-4 min-w-[220px]">
+                    <%= link_to order.customer.full_name,
+                        admin_order_path(order),
+                        class: "block text-sm font-semibold text-gray-800 truncate hover:text-indigo-700 transition-colors" %>
+                    <p class="text-xs text-gray-400 truncate"><%= order.customer.email %></p>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex w-fit px-2.5 py-0.5 rounded-full text-xs font-bold <%= badge %>">
+                      <%= order.status.capitalize %>
+                    </span>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-right">
+                    <span class="text-sm font-bold text-gray-900"><%= number_to_currency(order.total_with_tax) %></span>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-right">
+                    <span class="text-sm text-gray-600"><%= order.created_at.strftime("%b %-d, %Y") %></span>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-right">
+                    <%= link_to "View",
+                        admin_order_path(order),
+                        class: "inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:border-indigo-300 hover:text-indigo-700 text-gray-600 text-sm font-semibold transition-colors" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+
+  </div>
+</div>

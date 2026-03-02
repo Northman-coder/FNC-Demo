@@ -1,0 +1,78 @@
+<div id="<%= dom_id product %>" data-product-id="<%= product.id %>" class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex flex-col relative border border-gray-200 h-full">
+
+  <%# Admin controls — visible on hover %>
+  <% if admin_signed_in? %>
+    <div class="absolute top-2.5 right-2.5 flex gap-1.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <%= link_to "Edit", edit_product_path(product),
+          class: "bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-1 px-2.5 rounded-lg shadow" %>
+      <%= link_to (product.new_arrival? ? "★" : "☆"), toggle_new_arrival_product_path(product),
+          data: { turbo_method: :patch, turbo_confirm: (product.new_arrival? ? "Remove #{product.name} from New Arrivals?" : "Mark #{product.name} as New Arrival?") },
+          class: "bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-semibold py-1 px-2.5 rounded-lg shadow" %>
+      <%= link_to "Delete", product,
+          data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+          class: "bg-red-600 hover:bg-red-500 text-white text-xs font-semibold py-1 px-2.5 rounded-lg shadow" %>
+    </div>
+  <% end %>
+
+  <%# Badges (positioned top-left, below admin controls) %>
+  <div class="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5">
+    <% if product.discounted? %>
+      <% pct = ((1 - product.price.to_f / product.original_price.to_f) * 100).round %>
+      <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm leading-relaxed">
+        &minus;<%= pct %>%
+      </span>
+    <% end %>
+    <% if product.new_arrival? %>
+      <span class="bg-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm leading-relaxed">NEW</span>
+    <% end %>
+  </div>
+
+  <%# Image + info link %>
+  <%= link_to product, class: "block" do %>
+    <% cover_image = product.image.attached? ? product.image : (product.images.attached? ? product.images.first : nil) %>
+    <div class="w-full h-48 bg-gray-50 overflow-hidden flex items-center justify-center">
+      <% if cover_image %>
+        <%= image_tag cover_image,
+            class: "w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500 ease-out",
+            alt: product.name,
+            loading: "lazy",
+            decoding: "async" %>
+      <% else %>
+        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+          <svg class="w-12 h-12 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="px-4 pt-3 pb-2">
+      <p class="font-semibold text-sm text-gray-800 leading-snug line-clamp-2 min-h-[2.5rem] mb-2.5"><%= product.name %></p>
+      <div class="flex items-center gap-2 flex-wrap">
+        <% if product.discounted? %>
+          <span class="font-bold text-red-600 text-base"><%= number_to_currency product.price %></span>
+          <span class="text-xs text-gray-400 line-through"><%= number_to_currency product.original_price %></span>
+        <% else %>
+          <span class="font-bold text-gray-900 text-base"><%= number_to_currency product.price %></span>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <% unless admin_signed_in? %>
+    <%# Add to Basket %>
+    <div class="px-4 pb-4 pt-1 mt-auto">
+      <%= button_to add_basket_path,
+          method: :post,
+          params: { product_id: product.id },
+          class: "w-full bg-primary hover:bg-primary-dark active:scale-95 text-white font-semibold py-2.5 rounded-xl transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5" do %>
+        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        Add to Basket
+      <% end %>
+    </div>
+  <% end %>
+
+</div>

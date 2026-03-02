@@ -1,0 +1,115 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold text-indigo-800 mb-6">Edit Section: <%= @section.identifier.humanize %></h1>
+
+    <%= form_with(model: @section, url: admin_homepage_section_path(@section), method: :patch, local: true, class: "space-y-6") do |f| %>
+      <% if @section.errors.any? %>
+        <div class="bg-red-50 border border-red-200 p-4 rounded">
+          <h2 class="font-bold mb-1"><%= pluralize(@section.errors.count, "error") %> prohibited this from being saved:</h2>
+          <ul class="list-disc ml-5 text-sm text-red-700">
+            <% @section.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% case @section.identifier %>
+      <% when "free_shipping" %>
+        <div>
+          <%= f.label :label, "Free shipping threshold", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :label, placeholder: "£60", class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+          <p class="mt-2 text-xs text-gray-500">
+            This value updates both the hero tagline and the trust bar (e.g. “Free shipping over £60” / “Free Delivery over £60”).
+          </p>
+        </div>
+
+      <% when "guarantee_label" %>
+        <div>
+          <%= f.label :label, "Guarantee badge text", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :label, placeholder: "5-Year Guarantee", class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+          <p class="mt-2 text-xs text-gray-500">
+            This value updates the homepage trust bar and the product page trust badge.
+          </p>
+        </div>
+
+      <% when "footer_blurb" %>
+        <div>
+          <%= f.label :description, "Footer description", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_area :description, rows: 4, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+        </div>
+
+      <% when "footer_trust_line" %>
+        <div>
+          <%= f.label :headline, "Footer trust line", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :headline, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+          <p class="mt-2 text-xs text-gray-500">Example: Secure checkout • Free returns • 5-year guarantee</p>
+        </div>
+
+      <% when "footer_newsletter_heading" %>
+        <div>
+          <%= f.label :headline, "Newsletter heading", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :headline, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+        </div>
+
+      <% when "footer_newsletter_subheading" %>
+        <div>
+          <%= f.label :description, "Newsletter subheading", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_area :description, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+        </div>
+
+      <% when "footer_privacy_label" %>
+        <div>
+          <%= f.label :label, "Privacy policy label", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :label, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+        </div>
+
+      <% when "footer_terms_label" %>
+        <div>
+          <%= f.label :label, "Terms of service label", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :label, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+        </div>
+
+      <% else %>
+        <div>
+          <%= f.label :label, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :label, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+        </div>
+
+        <div>
+          <%= f.label :headline, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :headline, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+        </div>
+
+        <div>
+          <%= f.label :description, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_area :description, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+        </div>
+
+        <div>
+          <%= f.label :link_text, "Link Text", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :link_text, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+        </div>
+
+        <div>
+          <%= f.label :link_url, "Link URL", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :link_url, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+        </div>
+
+        <div>
+          <%= f.label :image, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.file_field :image, class: "mt-1 block w-full" %>
+          <% if @section.image.attached? %>
+            <p class="mt-2 text-xs text-gray-500">Current image:</p>
+            <%= image_tag @section.image.variant(resize_to_limit: [200, 200]), class: "mt-1" %>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div class="flex justify-end gap-3">
+        <%= link_to "Cancel", admin_homepage_sections_path, class: "text-gray-700 hover:underline" %>
+        <%= f.submit "Save", class: "bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-lg" %>
+      </div>
+    <% end %>
+  </div>
+</div>

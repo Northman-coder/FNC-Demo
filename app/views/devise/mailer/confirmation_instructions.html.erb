@@ -1,0 +1,12 @@
+<h2>Confirm Your Account</h2>
+<p class="lead">Welcome, <%= @email %>! Please confirm your email address to activate your account.</p>
+
+<p style="text-align:center;">
+  <%= link_to "Confirm My Account", confirmation_url(@resource, confirmation_token: @token), class: "btn" %>
+</p>
+
+<hr class="divider">
+
+<p class="lead" style="font-size:13px; color:#9ca3af;">
+  If you didn't create an account, you can safely ignore this email.
+</p>

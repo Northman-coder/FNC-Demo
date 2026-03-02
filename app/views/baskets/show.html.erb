@@ -1,0 +1,351 @@
+<% content_for :title, "Shopping Cart" %>
+
+<div class="bg-gray-50 min-h-screen">
+<div class="max-w-screen-xl mx-auto px-4 sm:px-6 py-8">
+
+  <% free_shipping_threshold = free_shipping_threshold_display %>
+  <% free_shipping_threshold_amount_value = free_shipping_threshold_amount %>
+  <% basket_subtotal = @basket.total_price.to_d %>
+  <% remaining_for_free_shipping = (free_shipping_threshold_amount_value - basket_subtotal).round(2) %>
+  <% shipping_progress = if free_shipping_threshold_amount_value.to_d <= 0
+      100
+    else
+      ((basket_subtotal / free_shipping_threshold_amount_value.to_d) * 100).clamp(0, 100).to_i
+    end %>
+  <% total_savings = @basket.items.sum do |item|
+       p = item[:product]; q = item[:quantity]
+       (p.discounted? && p.original_price.present?) ? (p.original_price.to_d - p.price.to_d) * q : 0
+     end %>
+
+  <%# Breadcrumb %>
+  <nav class="flex items-center gap-1.5 text-xs text-gray-400 mb-5">
+    <%= link_to "Home", root_path, class: "hover:text-gray-600 transition-colors" %>
+    <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+    <span class="text-gray-700 font-medium">Shopping Cart</span>
+  </nav>
+
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">
+    Shopping Cart
+    <% unless @basket.empty? %>
+      <span class="text-base font-normal text-gray-400 ml-1">(<%= @basket.total_items %> <%= @basket.total_items == 1 ? "item" : "items" %>)</span>
+    <% end %>
+  </h1>
+
+  <% if @basket.empty? %>
+    <div class="bg-white rounded-2xl border border-gray-200 text-center py-24 px-6">
+      <div class="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
+        <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold text-gray-800 mb-2">Your basket is empty</h2>
+      <p class="text-gray-400 text-sm mb-6">Looks like you haven't added anything yet.</p>
+      <p class="text-sm text-gray-500 mb-8">Free delivery on orders over <span class="font-bold text-gray-800"><%= free_shipping_threshold %></span>.</p>
+      <%= link_to "Start Shopping", products_path,
+          class: "inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-3.5 rounded-full transition-colors" %>
+    </div>
+
+  <% else %>
+    <div class="lg:grid lg:grid-cols-3 lg:gap-6 items-start">
+
+      <%# ── Left: Cart items ── %>
+      <div class="lg:col-span-2 space-y-4 mb-6 lg:mb-0">
+
+        <%# Free shipping progress bar %>
+        <div class="bg-white rounded-xl border border-gray-200 px-5 py-4">
+          <% if remaining_for_free_shipping <= 0 %>
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-emerald-700">You've unlocked free delivery!</p>
+                <p class="text-xs text-emerald-600">Enjoy complimentary delivery on your order.</p>
+              </div>
+            </div>
+          <% else %>
+            <div class="flex items-start gap-3 mb-3">
+              <svg class="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+              </svg>
+              <p class="text-sm text-gray-700">
+                Spend <span class="font-bold text-indigo-600"><%= number_to_currency(remaining_for_free_shipping) %></span> more to qualify for <span class="font-bold">free delivery</span> on orders over <%= free_shipping_threshold %>
+              </p>
+            </div>
+            <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-500 rounded-full transition-all duration-300" style="width: <%= shipping_progress %>%"></div>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Cart items card %>
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+
+          <%# Column headers — desktop %>
+          <div class="hidden md:grid md:grid-cols-[1fr_100px_130px_90px_44px] gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <span>Product</span>
+            <span class="text-right">Price</span>
+            <span class="text-center">Quantity</span>
+            <span class="text-right">Total</span>
+            <span></span>
+          </div>
+
+          <% @basket.items.each do |item| %>
+            <% product = item[:product] %>
+            <% quantity = item[:quantity] %>
+            <% cover = product.image.attached? ? product.image : (product.images.attached? ? product.images.first : nil) %>
+
+            <div class="px-6 py-5 border-b border-gray-100 last:border-b-0">
+
+              <%# Desktop row %>
+              <div class="hidden md:grid md:grid-cols-[1fr_100px_130px_90px_44px] gap-4 items-center">
+
+                <%# Product info %>
+                <div class="flex items-start gap-4">
+                  <div class="flex-shrink-0 w-24 h-24 bg-gray-50 rounded-lg overflow-hidden border border-gray-100">
+                    <% if cover %>
+                      <%= image_tag cover, class: "w-full h-full object-contain p-2" %>
+                    <% else %>
+                      <div class="w-full h-full flex items-center justify-center text-gray-200">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    <% end %>
+                  </div>
+                  <div class="min-w-0 flex-1 pt-0.5">
+                    <% if product.brand.present? %>
+                      <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5"><%= product.brand %></p>
+                    <% end %>
+                    <%= link_to product, class: "font-semibold text-gray-800 text-sm leading-snug hover:text-indigo-600 transition-colors line-clamp-2 block" do %>
+                      <%= product.name %>
+                    <% end %>
+                    <% if product.discounted? && product.original_price.present? %>
+                      <p class="mt-1 text-xs text-emerald-600 font-semibold">
+                        Save <%= number_to_currency(product.original_price.to_d - product.price.to_d) %> per item
+                      </p>
+                    <% end %>
+                  </div>
+                </div>
+
+                <%# Unit price %>
+                <div class="text-right">
+                  <% if product.discounted? && product.original_price.present? %>
+                    <p class="text-xs text-gray-400 line-through mb-0.5"><%= number_to_currency(product.original_price) %></p>
+                  <% end %>
+                  <p class="text-sm font-bold text-gray-900"><%= number_to_currency(product.price) %></p>
+                  <% if product.discounted? %>
+                    <span class="text-[11px] font-semibold text-red-500">Sale</span>
+                  <% end %>
+                </div>
+
+                <%# Qty stepper %>
+                <div class="flex justify-center">
+                  <%= form_with url: basket_path, method: :patch do |f| %>
+                    <%= f.hidden_field :product_id, value: product.id %>
+                    <div class="inline-flex items-center border border-gray-200 rounded-lg overflow-hidden h-9">
+                      <button type="button"
+                              class="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                              onclick="var inp=this.parentNode.querySelector('input[type=number]'); var v=parseInt(inp.value)||1; if(v>1){inp.value=v-1; inp.dispatchEvent(new Event('change'))}">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                      </button>
+                      <%= f.number_field :quantity, value: quantity, min: 1, max: 99,
+                          class: "w-10 text-center text-sm font-bold border-0 border-x border-gray-200 h-9 py-0 focus:ring-0 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                          onchange: "this.form.requestSubmit()" %>
+                      <button type="button"
+                              class="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                              onclick="var inp=this.parentNode.querySelector('input[type=number]'); inp.value=(parseInt(inp.value)||0)+1; inp.dispatchEvent(new Event('change'))">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                      </button>
+                    </div>
+                  <% end %>
+                </div>
+
+                <%# Line total %>
+                <div class="text-right">
+                  <span class="font-bold text-gray-900 text-sm"><%= number_to_currency(product.price * quantity) %></span>
+                </div>
+
+                <%# Delete %>
+                <%= button_to remove_basket_path(product_id: product.id), method: :delete,
+                    class: "w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer" do %>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                <% end %>
+
+              </div>
+
+              <%# Mobile row %>
+              <div class="md:hidden flex gap-3">
+                <div class="flex-shrink-0 w-20 h-20 bg-gray-50 rounded-lg overflow-hidden border border-gray-100">
+                  <% if cover %>
+                    <%= image_tag cover, class: "w-full h-full object-contain p-1.5" %>
+                  <% else %>
+                    <div class="w-full h-full flex items-center justify-center text-gray-200">
+                      <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  <% end %>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <% if product.brand.present? %>
+                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5"><%= product.brand %></p>
+                  <% end %>
+                  <%= link_to product, class: "font-semibold text-gray-800 text-sm leading-snug hover:text-indigo-600 transition-colors line-clamp-2 block" do %>
+                    <%= product.name %>
+                  <% end %>
+                  <div class="mt-1 flex items-baseline gap-2">
+                    <% if product.discounted? && product.original_price.present? %>
+                      <span class="text-xs text-gray-400 line-through"><%= number_to_currency(product.original_price) %></span>
+                    <% end %>
+                    <span class="text-sm font-bold text-gray-900"><%= number_to_currency(product.price) %></span>
+                  </div>
+                  <div class="mt-2.5 flex items-center justify-between gap-3">
+                    <%= form_with url: basket_path, method: :patch do |f| %>
+                      <%= f.hidden_field :product_id, value: product.id %>
+                      <div class="inline-flex items-center border border-gray-200 rounded-lg overflow-hidden h-8">
+                        <button type="button"
+                                class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+                                onclick="var inp=this.parentNode.querySelector('input[type=number]'); var v=parseInt(inp.value)||1; if(v>1){inp.value=v-1; inp.dispatchEvent(new Event('change'))}">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                        </button>
+                        <%= f.number_field :quantity, value: quantity, min: 1, max: 99,
+                            class: "w-9 text-center text-sm font-bold border-0 border-x border-gray-200 h-8 py-0 focus:ring-0 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                            onchange: "this.form.requestSubmit()" %>
+                        <button type="button"
+                                class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+                                onclick="var inp=this.parentNode.querySelector('input[type=number]'); inp.value=(parseInt(inp.value)||0)+1; inp.dispatchEvent(new Event('change'))">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        </button>
+                      </div>
+                    <% end %>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-gray-900 text-sm"><%= number_to_currency(product.price * quantity) %></span>
+                      <%= button_to remove_basket_path(product_id: product.id), method: :delete,
+                          class: "w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer" do %>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          <% end %>
+        </div>
+
+        <%# Continue shopping %>
+        <%= link_to products_path,
+            class: "inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-500 text-sm font-semibold transition-colors" do %>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Continue Shopping
+        <% end %>
+      </div>
+
+      <%# ── Right: Order summary ── %>
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl border border-gray-200 p-6 lg:sticky lg:top-24">
+          <h2 class="text-lg font-bold text-gray-900 mb-5">Order Summary</h2>
+
+          <%# Promo code %>
+          <div class="mb-5">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Promo Code</label>
+            <div class="flex gap-2">
+              <input type="text" placeholder="Enter code"
+                     class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 bg-gray-50">
+              <button class="px-4 py-2 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap">Apply</button>
+            </div>
+          </div>
+
+          <%# Price breakdown %>
+          <div class="border-t border-gray-100 pt-4 space-y-3 mb-4">
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-gray-500">Subtotal (<%= @basket.total_items %> <%= @basket.total_items == 1 ? "item" : "items" %>)</span>
+              <span class="font-semibold text-gray-800"><%= number_to_currency(basket_subtotal) %></span>
+            </div>
+            <% if total_savings > 0 %>
+              <div class="flex justify-between items-center text-sm">
+                <span class="font-semibold text-emerald-600">You save</span>
+                <span class="font-bold text-emerald-600">−<%= number_to_currency(total_savings) %></span>
+              </div>
+            <% end %>
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-gray-500">Delivery</span>
+              <% if remaining_for_free_shipping <= 0 %>
+                <span class="font-semibold text-emerald-600">Free</span>
+              <% else %>
+                <span class="text-xs font-semibold text-gray-500 text-right">Calculated at checkout</span>
+              <% end %>
+            </div>
+          </div>
+
+          <%# Savings callout %>
+          <% if total_savings > 0 %>
+            <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span class="text-xs font-semibold text-emerald-700">You're saving <%= number_to_currency(total_savings) %> on this order!</span>
+            </div>
+          <% end %>
+
+          <%# Total %>
+          <div class="border-t border-gray-200 pt-4 mb-5">
+            <div class="flex justify-between items-baseline">
+              <span class="font-bold text-gray-900 text-base">Total</span>
+              <span class="font-bold text-gray-900 text-2xl"><%= number_to_currency(basket_subtotal) %></span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">VAT &amp; taxes included where applicable</p>
+          </div>
+
+          <%# Checkout CTA %>
+          <%= form_with url: orders_path, method: :post, local: true do |f| %>
+            <%= f.submit "Proceed to Checkout →",
+                class: "w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold py-4 rounded-xl transition-all cursor-pointer text-sm" %>
+          <% end %>
+
+          <%# Payment icons %>
+          <div class="mt-4 flex items-center justify-center gap-1.5 flex-wrap">
+            <% %w[VISA MASTERCARD AMEX PAYPAL].each do |pm| %>
+              <span class="border border-gray-200 rounded px-2 py-1 text-[10px] font-bold text-gray-400 leading-none tracking-wide"><%= pm %></span>
+            <% end %>
+          </div>
+
+          <%# Trust badges %>
+          <div class="mt-5 pt-5 border-t border-gray-100 space-y-2.5">
+            <div class="flex items-center gap-2.5 text-xs text-gray-500">
+              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+              </svg>
+              <span>Secure &amp; encrypted checkout</span>
+            </div>
+            <div class="flex items-center gap-2.5 text-xs text-gray-500">
+              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>30-day hassle-free returns</span>
+            </div>
+            <div class="flex items-center gap-2.5 text-xs text-gray-500">
+              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+              </svg>
+              <span>Free delivery on orders over <%= free_shipping_threshold %></span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  <% end %>
+
+</div>
+</div>

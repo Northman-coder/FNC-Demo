@@ -1,0 +1,146 @@
+<% content_for :title, "Sales" %>
+
+<div class="min-h-screen bg-gray-100 p-8">
+  <div class="max-w-5xl mx-auto">
+
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-indigo-800">Sales</h1>
+        <p class="text-gray-500 text-sm mt-1">Daily and monthly sales totals</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <%= link_to "Back to Dashboard", admin_dashboard_path,
+            class: "bg-white hover:bg-gray-50 text-gray-800 font-semibold px-4 py-2.5 rounded-lg transition text-sm border border-gray-200" %>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Today</p>
+        <p class="text-3xl font-bold text-gray-900 mt-2"><%= number_to_currency(@today_total, unit: "£") %></p>
+        <p class="text-sm text-gray-500 mt-1"><%= @today.to_s %></p>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">This Month</p>
+        <p class="text-3xl font-bold text-gray-900 mt-2"><%= number_to_currency(@month_total, unit: "£") %></p>
+        <p class="text-sm text-gray-500 mt-1"><%= @today.strftime("%Y-%m") %></p>
+      </div>
+    </div>
+
+    <% daily_max = @daily_sales.map { |d| d[:total].to_f }.max.to_f %>
+    <% monthly_max = @monthly_sales.map { |m| m[:total].to_f }.max.to_f %>
+
+    <div class="grid grid-cols-1 gap-6">
+
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-end justify-between gap-4 mb-5">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">Daily Sales (Last <%= @daily_days %> Days)</h2>
+            <p class="text-sm text-gray-500">Total order value per day</p>
+          </div>
+          <div class="flex flex-wrap items-center justify-end gap-2">
+            <% [7, 30, 90].each do |n| %>
+              <% active = (n == @daily_days) %>
+              <%= link_to "#{n}d", admin_sales_path(daily_days: n, monthly_months: @monthly_months),
+                  class: "text-xs font-semibold px-3 py-1.5 rounded-full border transition #{active ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"}" %>
+            <% end %>
+            <p class="text-sm text-gray-500 ml-2">Max: <span class="font-semibold text-gray-800"><%= number_to_currency(daily_max, unit: "£") %></span></p>
+          </div>
+        </div>
+
+        <% chart_w = 600.0 %>
+        <% chart_h = 160.0 %>
+        <% pad = 10.0 %>
+        <% x_step = @daily_sales.length > 1 ? (chart_w - (2 * pad)) / (@daily_sales.length - 1) : 0 %>
+        <% daily_points = @daily_sales.map.with_index do |day, idx|
+             x = pad + (idx * x_step)
+             y = chart_h - pad - (daily_max.positive? ? (day[:total].to_f / daily_max) * (chart_h - (2 * pad)) : 0)
+             "#{x.round(2)},#{y.round(2)}"
+           end.join(" ") %>
+
+        <% if daily_max.positive? %>
+          <svg class="w-full h-44 text-indigo-600" viewBox="0 0 <%= chart_w %> <%= chart_h %>" preserveAspectRatio="none" aria-label="Daily sales line chart" role="img">
+            <polyline points="<%= daily_points %>" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        <% else %>
+          <div class="h-44 flex items-center justify-center text-sm text-gray-400">No sales in this range.</div>
+        <% end %>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50/50">
+              <tr>
+                <th class="px-4 py-2 text-left font-semibold text-gray-500">Date</th>
+                <th class="px-4 py-2 text-right font-semibold text-gray-500">Sales</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+              <% @daily_sales.last(10).reverse.each do |day| %>
+                <tr>
+                  <td class="px-4 py-2 text-gray-700"><%= day[:label] %></td>
+                  <td class="px-4 py-2 text-right font-semibold text-gray-900"><%= number_to_currency(day[:total], unit: "£") %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+          <p class="text-xs text-gray-400 mt-2">Showing the most recent 10 days in the table.</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-end justify-between gap-4 mb-5">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">Monthly Sales (Last <%= @monthly_months %> Months)</h2>
+            <p class="text-sm text-gray-500">Total order value per month</p>
+          </div>
+          <div class="flex flex-wrap items-center justify-end gap-2">
+            <% [3, 6, 12].each do |n| %>
+              <% active = (n == @monthly_months) %>
+              <%= link_to "#{n}m", admin_sales_path(daily_days: @daily_days, monthly_months: n),
+                  class: "text-xs font-semibold px-3 py-1.5 rounded-full border transition #{active ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"}" %>
+            <% end %>
+            <p class="text-sm text-gray-500 ml-2">Max: <span class="font-semibold text-gray-800"><%= number_to_currency(monthly_max, unit: "£") %></span></p>
+          </div>
+        </div>
+
+        <% m_chart_w = 600.0 %>
+        <% m_chart_h = 160.0 %>
+        <% m_pad = 10.0 %>
+        <% m_x_step = @monthly_sales.length > 1 ? (m_chart_w - (2 * m_pad)) / (@monthly_sales.length - 1) : 0 %>
+        <% monthly_points = @monthly_sales.map.with_index do |month, idx|
+             x = m_pad + (idx * m_x_step)
+             y = m_chart_h - m_pad - (monthly_max.positive? ? (month[:total].to_f / monthly_max) * (m_chart_h - (2 * m_pad)) : 0)
+             "#{x.round(2)},#{y.round(2)}"
+           end.join(" ") %>
+
+        <% if monthly_max.positive? %>
+          <svg class="w-full h-44 text-emerald-600" viewBox="0 0 <%= m_chart_w %> <%= m_chart_h %>" preserveAspectRatio="none" aria-label="Monthly sales line chart" role="img">
+            <polyline points="<%= monthly_points %>" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        <% else %>
+          <div class="h-44 flex items-center justify-center text-sm text-gray-400">No sales in this range.</div>
+        <% end %>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50/50">
+              <tr>
+                <th class="px-4 py-2 text-left font-semibold text-gray-500">Month</th>
+                <th class="px-4 py-2 text-right font-semibold text-gray-500">Sales</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+              <% @monthly_sales.reverse.each do |month| %>
+                <tr>
+                  <td class="px-4 py-2 text-gray-700"><%= month[:label] %></td>
+                  <td class="px-4 py-2 text-right font-semibold text-gray-900"><%= number_to_currency(month[:total], unit: "£") %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

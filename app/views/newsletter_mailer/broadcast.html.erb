@@ -1,0 +1,10 @@
+<%= raw @body_html %>
+
+<hr class="divider">
+
+<% content_for :email_footer do %>
+  <p>You're receiving this because you subscribed to our newsletter.</p>
+  <p style="margin-top:4px;">
+    <a href="<%= unsubscribe_url(token: @subscriber.unsubscribe_token) %>">Unsubscribe</a>
+  </p>
+<% end %>

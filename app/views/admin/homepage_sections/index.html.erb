@@ -1,0 +1,29 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-indigo-800 mb-6">Site Content Sections</h1>
+
+    <table class="w-full table-auto bg-white rounded-lg shadow-sm">
+      <thead>
+        <tr class="bg-gray-50">
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Identifier</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Label / Headline</th>
+          <th class="px-4 py-2 text-right"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @sections.each do |section| %>
+          <tr class="border-t">
+            <td class="px-4 py-3 text-sm text-gray-800"><%= section.identifier.humanize %></td>
+            <td class="px-4 py-3 text-sm text-gray-800">
+              <%= section.label.presence || section.headline.presence || section.description.to_s.truncate(70).presence || "(empty)" %>
+            </td>
+            <td class="px-4 py-3 text-sm text-right">
+              <%= link_to "Edit", edit_admin_homepage_section_path(section),
+                  class: "inline-block bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

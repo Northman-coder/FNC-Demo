@@ -1,0 +1,8 @@
+<div class="max-w-screen-xl mx-auto px-6 py-14">
+  <h1 class="text-3xl font-bold mb-6"><%= @brand %></h1>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
+    <% @products.each do |product| %>
+      <%= render product %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,70 @@
+<h2>Order Confirmed!</h2>
+<p class="lead">Hi <%= @customer.first_name %>, thanks for your order. We've received it and will update you as it progresses.</p>
+
+<hr class="divider">
+
+<p class="meta-label">Order Reference</p>
+<p class="meta-value" style="font-family:monospace; margin-bottom:16px;"><%= @order.order_number %></p>
+
+<p class="meta-label">Order Date</p>
+<p class="meta-value" style="margin-bottom:16px;"><%= @order.created_at.strftime("%B %-d, %Y") %></p>
+
+<p class="meta-label">Status</p>
+<p style="margin-bottom:20px;">
+  <span class="badge badge-<%= @order.status %>"><%= @order.status.capitalize %></span>
+</p>
+
+<hr class="divider">
+
+<table class="items">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Qty</th>
+      <th class="r">Price</th>
+      <th class="r">Subtotal</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @items.each do |item| %>
+      <tr>
+        <td>
+          <div class="product-name"><%= item.product.name %></div>
+          <% if item.product.brand.present? %>
+            <div class="product-brand"><%= item.product.brand %></div>
+          <% end %>
+        </td>
+        <td><%= item.quantity %></td>
+        <td class="r">£<%= number_with_precision(item.unit_price, precision: 2) %></td>
+        <td class="r">£<%= number_with_precision(item.unit_price * item.quantity, precision: 2) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="totals">
+  <div class="total-row">
+    <span>Subtotal</span>
+    <span>£<%= number_with_precision(@order.subtotal_price, precision: 2) %></span>
+  </div>
+  <% if @order.tax_amount.to_d > 0 %>
+    <div class="total-row">
+      <span>Tax (<%= @order.tax_percent %>%)</span>
+      <span>£<%= number_with_precision(@order.tax_amount, precision: 2) %></span>
+    </div>
+  <% end %>
+  <div class="total-row grand">
+    <span>Total</span>
+    <span>£<%= number_with_precision(@order.total_with_tax, precision: 2) %></span>
+  </div>
+</div>
+
+<hr class="divider">
+
+<p style="text-align:center;">
+  <%= link_to "View Your Order", order_url(@order), class: "btn" %>
+</p>
+
+<% content_for :email_footer do %>
+  <p>You're receiving this because you placed an order with us. Questions? Reply to this email.</p>
+<% end %>

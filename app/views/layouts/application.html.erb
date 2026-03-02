@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= yield (:title) || "FNC Best Products" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="FNC Best Products">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="<%= asset_path('logo.png') %>" type="image/png">
+    <link rel="apple-touch-icon" href="<%= asset_path('logo.png') %>">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <%# Navbar %>
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <div class="max-w-screen-xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3 sm:gap-4">
+        <%= link_to root_path, class: "flex items-center flex-shrink-0", aria: { label: "Home" } do %>
+          <%= image_tag "logo.png", class: "h-11 w-11 rounded-full ring-1 ring-gray-200 bg-white p-1 hover:opacity-90 transition-opacity" %>
+        <% end %>
+
+        <%# Search bar %>
+        <div class="flex-1 max-w-sm lg:max-w-md mx-auto hidden sm:block">
+          <%= form_with url: products_path, method: :get, class: "w-full" do |form| %>
+            <div class="flex items-center w-full rounded-full border border-gray-200 bg-gray-50 shadow-sm overflow-hidden transition focus-within:bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+              <div class="relative flex-1">
+                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <%= form.text_field :query, value: params[:query],
+                    class: "w-full bg-transparent border-0 focus:ring-0 py-2 pl-10 pr-3 text-sm font-semibold text-gray-700 placeholder:text-gray-400",
+                    placeholder: "Search products...",
+                    aria: { label: "Search products" } %>
+              </div>
+              <%= form.submit "Search",
+                  class: "m-1 bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold cursor-pointer transition-colors" %>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="flex items-center gap-2 flex-shrink-0">
+
+          <%# Mobile search icon %>
+          <%= link_to products_path, class: "sm:hidden inline-flex items-center justify-center h-10 w-10 rounded-full text-gray-700 hover:text-primary hover:bg-primary-light transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          <% end %>
+
+          <%# Info icon + dropdown %>
+          <div class="relative" id="info-menu-container">
+            <button onclick="toggleInfoMenu()"
+                    class="inline-flex items-center justify-center h-10 w-10 rounded-full text-gray-700 hover:text-primary hover:bg-primary-light transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                    aria-label="Info">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+              </svg>
+            </button>
+
+            <div id="info-dropdown"
+                 class="hidden absolute right-0 top-full mt-2.5 w-60 bg-white rounded-2xl shadow-xl border border-gray-200 py-2 z-50 animate-slide-down">
+              <div class="px-4 py-2 border-b border-gray-50 mb-1">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">About the Store</p>
+              </div>
+
+              <%= link_to about_path, class: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-light hover:text-primary transition rounded-lg mx-1" do %>
+                <div class="w-7 h-7 bg-primary-light rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+                  </svg>
+                </div>
+                <span class="font-medium">About Us</span>
+              <% end %>
+
+              <%= link_to contact_path, class: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-light hover:text-primary transition rounded-lg mx-1" do %>
+                <div class="w-7 h-7 bg-primary-light rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                  </svg>
+                </div>
+                <span class="font-medium">Contact Us</span>
+              <% end %>
+
+              <%= link_to new_arrivals_path, class: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-light hover:text-primary transition rounded-lg mx-1" do %>
+                <span class="font-medium">New Arrivals</span>
+              <% end %>
+              <%= link_to exclusive_deals_path, class: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-light hover:text-primary transition rounded-lg mx-1" do %>
+                <span class="font-medium">Exclusive Deals</span>
+              <% end %>
+              <%= link_to brands_path, class: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-light hover:text-primary transition rounded-lg mx-1" do %>
+                <span class="font-medium">Brands</span>
+              <% end %>
+
+              <div class="border-t border-gray-50 mt-2 px-4 pt-3 pb-2">
+                <p class="text-xs text-gray-400 leading-relaxed">123 Main Street, City, Country</p>
+                <p class="text-xs text-gray-400">contact@ecommerce.com</p>
+                <p class="text-xs text-gray-400">+1 (555) 000-0000</p>
+              </div>
+            </div>
+          </div>
+
+          <% unless admin_signed_in? %>
+            <%# User icon + dropdown %>
+            <div class="relative" id="user-menu-container">
+              <button onclick="toggleUserMenu()"
+                      class="inline-flex items-center justify-center h-10 w-10 rounded-full text-gray-700 hover:text-primary hover:bg-primary-light transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                      aria-label="Account">
+                <% if customer_signed_in? && current_customer.is_a?(Customer) %>
+                  <span class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-white text-xs font-bold flex items-center justify-center shadow-sm">
+                    <%= current_customer.first_name.first.upcase %>
+                  </span>
+                <% else %>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                <% end %>
+              </button>
+
+              <div id="user-dropdown"
+                   class="hidden absolute right-0 top-full mt-2.5 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-slide-down">
+                <% if customer_signed_in? && current_customer.is_a?(Customer) %>
+                  <div class="px-4 py-2.5 border-b border-gray-50 mb-1">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Account</p>
+                    <p class="text-sm font-semibold text-gray-800 truncate mt-0.5"><%= current_customer.first_name %> <%= current_customer.last_name %></p>
+                  </div>
+                  <%= link_to account_path,
+                      class: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition rounded-lg mx-1" do %>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    My Account
+                  <% end %>
+                  <%= link_to destroy_customer_session_path,
+                      data: { turbo_method: :delete },
+                      class: "flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition rounded-lg mx-1" do %>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                    Sign out
+                  <% end %>
+                <% else %>
+                  <div class="px-4 py-2 border-b border-gray-50 mb-1">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Account</p>
+                  </div>
+                  <%= link_to new_customer_session_path,
+                      class: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition rounded-lg mx-1" do %>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" transform="rotate(180 12 12)" />
+                    </svg>
+                    Sign in
+                  <% end %>
+                  <%= link_to new_customer_registration_path,
+                      class: "flex items-center gap-3 px-4 py-2.5 text-sm text-primary font-semibold hover:bg-primary-light transition rounded-lg mx-1" do %>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0112 21c-2.278 0-4.413-.62-6.25-1.765z" />
+                    </svg>
+                    Create account
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+
+          <% unless admin_signed_in? %>
+            <%# Basket icon %>
+            <% basket = Basket.new(session) %>
+            <%= link_to basket_path, class: "relative inline-flex items-center justify-center h-10 w-10 rounded-full text-gray-700 hover:text-primary hover:bg-primary-light transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+              </svg>
+              <% if basket.total_items > 0 %>
+                <span class="absolute -top-0.5 -right-0.5 bg-primary text-white text-[10px] font-bold rounded-full h-4.5 w-4.5 min-w-[18px] min-h-[18px] flex items-center justify-center leading-none px-1">
+                  <%= basket.total_items %>
+                </span>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </header>
+
+    <%# Flash notices %>
+    <% if notice.present? %>
+      <div class="fixed top-[72px] left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-full shadow-xl" id="flash-notice">
+        <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+        </svg>
+        <%= notice %>
+      </div>
+      <script>
+        setTimeout(function() {
+          var el = document.getElementById('flash-notice');
+          if (el) { el.style.transition = 'opacity 0.4s'; el.style.opacity = '0'; setTimeout(function() { el.remove(); }, 400); }
+        }, 3500);
+      </script>
+    <% end %>
+
+    <% if alert.present? %>
+      <div class="fixed top-[72px] left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 bg-red-600 text-white text-sm font-medium px-5 py-3 rounded-full shadow-xl" id="flash-alert">
+        <svg class="w-4 h-4 text-red-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01M12 5a7 7 0 100 14A7 7 0 0012 5z" />
+        </svg>
+        <%= alert %>
+      </div>
+      <script>
+        setTimeout(function() {
+          var el = document.getElementById('flash-alert');
+          if (el) { el.style.transition = 'opacity 0.4s'; el.style.opacity = '0'; setTimeout(function() { el.remove(); }, 400); }
+        }, 5000);
+      </script>
+    <% end %>
+
+    <main class="w-full mt-[68px] flex flex-col flex-1">
+      <%= yield %>
+    </main>
+
+    <%# Footer %>
+    <footer class="bg-gray-950 text-white mt-auto">
+      <div class="max-w-screen-xl mx-auto px-6 py-14">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8 mb-12 items-start">
+
+          <%# Brand column %>
+          <div class="md:col-span-5">
+            <%= link_to root_path do %>
+              <%= image_tag "logo.png", class: "h-10 w-auto brightness-0 invert mb-4" %>
+            <% end %>
+            <p class="text-gray-400 text-sm leading-relaxed max-w-xs mb-6">
+              <%= homepage_section_text(
+                    "footer_blurb",
+                    :description,
+                    fallback: "Quality products, unbeatable prices, delivered straight to your door. Trusted by thousands of happy customers worldwide."
+                  ) %>
+            </p>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+              </svg>
+              <%= homepage_section_text(
+                    "footer_trust_line",
+                    :headline,
+                    fallback: "Secure checkout • Free returns • 5-year guarantee"
+                  ) %>
+            </div>
+          </div>
+
+          <%# Shop links %>
+          <div class="md:col-span-3">
+            <h4 class="font-semibold text-sm text-white uppercase tracking-widest mb-5">Shop</h4>
+            <ul class="space-y-3">
+              <li><%= link_to "All Products", products_path, class: "text-gray-400 hover:text-white text-sm transition-colors" %></li>
+              <li><%= link_to "New Arrivals", new_arrivals_path(anchor: "products"), class: "text-gray-400 hover:text-white text-sm transition-colors" %></li>
+              <% unless admin_signed_in? %>
+                <li><%= link_to "My Basket", basket_path, class: "text-gray-400 hover:text-white text-sm transition-colors" %></li>
+              <% end %>
+            </ul>
+          </div>
+
+          <%# Company links %>
+          <div class="md:col-span-4">
+            <h4 class="font-semibold text-sm text-white uppercase tracking-widest mb-5">Company</h4>
+            <ul class="space-y-3">
+              <li><%= link_to "About Us", about_path, class: "text-gray-400 hover:text-white text-sm transition-colors" %></li>
+              <li><%= link_to "Contact", contact_path, class: "text-gray-400 hover:text-white text-sm transition-colors" %></li>
+              <li><%= link_to "Sign In", new_customer_session_path, class: "text-gray-400 hover:text-white text-sm transition-colors" %></li>
+              <li><%= link_to "Create Account", new_customer_registration_path, class: "text-gray-400 hover:text-white text-sm transition-colors" %></li>
+            </ul>
+          </div>
+        </div>
+
+        <%# Newsletter signup %>
+        <div class="border-t border-gray-800 py-8">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p class="text-sm font-semibold text-white">
+                <%= homepage_section_text("footer_newsletter_heading", :headline, fallback: "Stay in the loop") %>
+              </p>
+              <p class="text-xs text-gray-500 mt-0.5">
+                <%= homepage_section_text(
+                      "footer_newsletter_subheading",
+                      :description,
+                      fallback: "New arrivals, exclusive deals and updates — straight to your inbox."
+                    ) %>
+              </p>
+            </div>
+            <%= form_with url: subscribe_path, method: :post, class: "flex gap-2 flex-1 sm:max-w-sm sm:ml-auto" do |f| %>
+              <%= f.email_field :email, placeholder: "Your email address",
+                  class: "flex-1 min-w-0 bg-gray-900 border border-gray-700 rounded-full px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-0 focus:border-primary transition-colors" %>
+              <%= f.submit "Subscribe",
+                  class: "bg-primary text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-primary-dark transition-colors cursor-pointer flex-shrink-0" %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p class="text-xs text-gray-600">&copy; <%= Date.current.year %> Bilal. All rights reserved.</p>
+          <div class="flex gap-5 text-xs text-gray-600">
+            <span><%= homepage_section_text("footer_privacy_label", :label, fallback: "Privacy Policy") %></span>
+            <span><%= homepage_section_text("footer_terms_label", :label, fallback: "Terms of Service") %></span>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <div data-controller="cookie-consent">
+      <div data-cookie-consent-target="banner" class="fixed inset-x-0 bottom-0 z-50">
+        <div class="mx-auto max-w-screen-xl px-4 pb-4">
+          <div class="rounded-2xl border border-gray-200 bg-white shadow-xl p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="text-sm text-gray-700 leading-relaxed">
+              <p class="font-semibold text-gray-900">Cookies</p>
+              <p>
+                We use cookies to make our site work and to improve your shopping experience.
+                <%= link_to "Learn more", cookies_path, class: "text-primary hover:text-primary-dark font-semibold" %>
+              </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+              <button type="button"
+                      data-action="click->cookie-consent#manage"
+                      class="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors">
+                Manage cookies
+              </button>
+              <button type="button"
+                      data-action="click->cookie-consent#rejectAll"
+                      class="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors">
+                Reject all
+              </button>
+              <button type="button"
+                      data-action="click->cookie-consent#acceptAll"
+                      class="px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors">
+                Accept all
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-cookie-consent-target="modal" class="hidden fixed inset-0 z-[60]">
+        <div class="absolute inset-0 bg-black/50" data-action="click->cookie-consent#close"></div>
+        <div class="absolute inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center p-4">
+          <div class="w-full md:max-w-xl bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex items-start justify-between gap-4">
+              <div>
+                <p class="text-lg font-bold text-gray-900">Cookie preferences</p>
+                <p class="text-sm text-gray-500 mt-1">Choose which cookies you allow. Strictly necessary cookies are always on.</p>
+              </div>
+                    <button type="button" aria-label="Close" data-action="click->cookie-consent#close"
+                      class="p-2 rounded-lg hover:bg-gray-50 text-gray-500 hover:text-gray-700 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="p-5 space-y-4">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="font-semibold text-gray-900">Strictly necessary</p>
+                  <p class="text-sm text-gray-500">Required for core site features like basket and checkout.</p>
+                </div>
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">Always on</span>
+              </div>
+
+              <div class="h-px bg-gray-100"></div>
+
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="font-semibold text-gray-900">Analytics</p>
+                  <p class="text-sm text-gray-500">Helps us understand site usage to improve performance.</p>
+                </div>
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700 select-none">
+                  <input data-cookie-consent-target="analytics" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                  Allow
+                </label>
+              </div>
+
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="font-semibold text-gray-900">Marketing</p>
+                  <p class="text-sm text-gray-500">Personalises offers and advertising.</p>
+                </div>
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700 select-none">
+                  <input data-cookie-consent-target="marketing" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                  Allow
+                </label>
+              </div>
+            </div>
+
+            <div class="p-5 border-t border-gray-100 flex flex-col sm:flex-row gap-2 sm:justify-end">
+              <button type="button" data-action="click->cookie-consent#rejectAll"
+                      class="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors">
+                Reject all
+              </button>
+              <button type="button" data-action="click->cookie-consent#acceptAll"
+                      class="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors">
+                Accept all
+              </button>
+              <button type="button" data-action="click->cookie-consent#save"
+                      class="px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors">
+                Save preferences
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleUserMenu() {
+        var info = document.getElementById('info-dropdown');
+        var user = document.getElementById('user-dropdown');
+        if (info) info.classList.add('hidden');
+        if (user) user.classList.toggle('hidden');
+      }
+      function toggleInfoMenu() {
+        var info = document.getElementById('info-dropdown');
+        var user = document.getElementById('user-dropdown');
+        if (user) user.classList.add('hidden');
+        if (info) info.classList.toggle('hidden');
+      }
+      document.addEventListener('click', function(e) {
+        ['user-menu-container', 'info-menu-container'].forEach(function(id) {
+          var container = document.getElementById(id);
+          var dropId    = id === 'user-menu-container' ? 'user-dropdown' : 'info-dropdown';
+          var dropdown  = document.getElementById(dropId);
+          if (container && dropdown && !container.contains(e.target)) {
+            dropdown.classList.add('hidden');
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

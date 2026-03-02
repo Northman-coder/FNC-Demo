@@ -1,0 +1,12 @@
+<h2>Account Locked</h2>
+<p class="lead">Hi <%= @resource.email %>, your account has been temporarily locked due to too many unsuccessful sign-in attempts.</p>
+
+<p style="text-align:center;">
+  <%= link_to "Unlock My Account", unlock_url(@resource, unlock_token: @token), class: "btn" %>
+</p>
+
+<hr class="divider">
+
+<p class="lead" style="font-size:13px; color:#9ca3af;">
+  If you did not attempt to sign in, please contact us immediately.
+</p>
