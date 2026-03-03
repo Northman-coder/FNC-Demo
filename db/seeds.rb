@@ -29,3 +29,82 @@
     sec.assign_attributes(attrs)
   end
 end
+
+  # Catalog bootstrap (idempotent)
+  categories = [
+    "Light Bulbs",
+    "Computers & Hardware",
+    "Home Audio",
+    "Smart Home",
+    "Cameras",
+    "Kitchen",
+    "Outdoor",
+    "Accessories"
+  ]
+
+  categories.each do |name|
+    Category.find_or_create_by!(name: name)
+  end
+
+  products = [
+    {
+      name: "LED Desk Lamp",
+      price: 39.99,
+      original_price: 59.99,
+      category: "Light Bulbs",
+      brand: "Lumina",
+      new_arrival: true,
+      description: "Adjustable LED lamp with touch dimmer and USB-C charging."
+    },
+    {
+      name: "Wireless Mechanical Keyboard",
+      price: 129.00,
+      original_price: 169.00,
+      category: "Computers & Hardware",
+      brand: "Keywave",
+      new_arrival: true,
+      description: "Hot-swap keys, tri-mode wireless, and RGB backlight."
+    },
+    {
+      name: "Bluetooth Soundbar",
+      price: 199.00,
+      original_price: 249.00,
+      category: "Home Audio",
+      brand: "Auralink",
+      description: "2.1 channel bar with wireless subwoofer and HDMI ARC."
+    },
+    {
+      name: "Smart Plug (4-pack)",
+      price: 49.00,
+      category: "Smart Home",
+      brand: "Nestio",
+      description: "App + voice control, energy monitoring, schedules, and scenes."
+    },
+    {
+      name: "4K Action Camera",
+      price: 249.00,
+      original_price: 299.00,
+      category: "Cameras",
+      brand: "TrailCam",
+      description: "Waterproof 4K60 action cam with stabilization and dual screens."
+    },
+    {
+      name: "Enamel Dutch Oven 5.5qt",
+      price: 119.00,
+      category: "Kitchen",
+      brand: "Hearthstone",
+      description: "Cast iron with enamel finish for braise, bake, or roast."
+    }
+  ]
+
+  products.each do |attrs|
+    product = Product.find_or_create_by!(name: attrs[:name]) do |p|
+      p.price = attrs[:price]
+      p.original_price = attrs[:original_price]
+      p.category = attrs[:category]
+      p.brand = attrs[:brand]
+      p.new_arrival = attrs[:new_arrival] || false
+    end
+
+    product.update!(description: attrs[:description]) if attrs[:description].present?
+  end
