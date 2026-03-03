@@ -17,6 +17,9 @@ bundle -v
 
 bundle check >/dev/null 2>&1 || bundle install --jobs 4 --retry 3
 
+# Ensure bin/bundle matches the installed Bundler version in the Render image.
+bundle binstubs bundler --force
+
 if [[ "$SKIP_ASSETS" == "false" ]]; then
 	echo "==> Precompiling assets"
 	SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
