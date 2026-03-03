@@ -22,7 +22,7 @@ bundle binstubs bundler --force
 
 if [[ "$SKIP_ASSETS" == "false" ]]; then
 	echo "==> Precompiling assets"
-	SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
+	SKIP_AUTO_MIGRATE=1 SKIP_AUTO_SEED=1 SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 else
 	echo "==> Skipping assets precompile (--skip-assets)"
 fi

@@ -5,6 +5,7 @@ if Rails.env.production?
   Rails.application.config.after_initialize do
     rails_groups = ENV.fetch("RAILS_GROUPS", "")
     next if rails_groups.split(",").include?("assets")
+    next if ENV["SKIP_AUTO_SEED"] == "1"
 
     begin
       needs_seed = Category.count.zero? || Product.count.zero?

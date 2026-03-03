@@ -12,7 +12,8 @@ if Rails.env.production?
 
     begin
       migrations_paths = ActiveRecord::Migrator.migrations_paths
-      ctx = ActiveRecord::MigrationContext.new(migrations_paths, ActiveRecord::SchemaMigration)
+      schema_migration = ActiveRecord::Base.connection.schema_migration
+      ctx = ActiveRecord::MigrationContext.new(migrations_paths, schema_migration)
 
       if ctx.needs_migration?
         Rails.logger.info("Auto-migrate: applying pending migrations at boot")
@@ -24,7 +25,8 @@ if Rails.env.production?
       Rails.logger.warn("Auto-migrate: attempting to create database then migrate: #{e.message}")
       begin
         ActiveRecord::Tasks::DatabaseTasks.create_current
-        ActiveRecord::MigrationContext.new(ActiveRecord::Migrator.migrations_paths, ActiveRecord::SchemaMigration).migrate
+        schema_migration = ActiveRecord::Base.connection.schema_migration
+        ActiveRecord::MigrationContext.new(ActiveRecord::Migrator.migrations_paths, schema_migration).migrate
       rescue => inner
         Rails.logger.error("Auto-migrate failed: #{inner.class}: #{inner.message}")
       end
