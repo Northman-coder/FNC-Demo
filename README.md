@@ -108,7 +108,7 @@ Notes:
 Trigger deploy (or wait for auto-deploy). Render will:
 
 - run `bash bin/render-build.sh`
-- run `bash bin/render-preflight.sh && bundle exec rails db:migrate` before web deploy
+- run `bash bin/render-preflight.sh && bundle exec rails db:prepare` before web deploy
 - start Puma for web and Sidekiq for worker
 
 You can run the same check manually at any time:
