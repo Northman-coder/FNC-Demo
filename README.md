@@ -109,7 +109,10 @@ Trigger deploy (or wait for auto-deploy). Render will:
 
 - run `bash bin/render-build.sh`
 - run `bash bin/render-preflight.sh && bundle exec rails db:prepare` before web deploy
-- start Puma for web and Sidekiq for worker
+- run `bundle exec rails db:prepare` at service startup, then start Puma/Sidekiq
+
+If you are on Render free tier and don't have Shell access, this startup `db:prepare`
+step ensures schema setup still happens on deploy/restart.
 
 You can run the same check manually at any time:
 
