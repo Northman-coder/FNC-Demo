@@ -47,3 +47,91 @@ Set these (for local dev you can use a `.env` file via `dotenv-rails`):
 	- Suggested event: `checkout.session.completed`
 # FNC-Demo
 # FNC-Demo
+
+## Deploy to Render
+
+This repository is already configured for Render via `render.yaml`.
+
+### 1) Push to GitHub
+
+Make sure the latest code is pushed to your GitHub repo/branch.
+
+### 2) Create services from Blueprint
+
+In Render:
+
+1. Go to **New +** → **Blueprint**.
+2. Connect your GitHub repo.
+3. Select this repository so Render reads `render.yaml`.
+4. Create all resources.
+
+This creates:
+
+- `ecommerce-db` (PostgreSQL)
+- `ecommerce-redis` (Key Value / Redis)
+- `ecommerce-web` (Rails web service)
+- `ecommerce-worker` (Sidekiq worker)
+
+### 3) Set required environment variables
+
+Set these in **both** `ecommerce-web` and `ecommerce-worker` unless noted.
+
+Required:
+
+- `RAILS_MASTER_KEY`
+- `RAILS_HOSTS` (for example: `your-app.onrender.com`)
+
+Payments (if used):
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `PAYPAL_CLIENT_ID`
+- `PAYPAL_CLIENT_SECRET`
+- `PAYPAL_ENV` (`sandbox` or `live`)
+- `PAYMENT_CURRENCY` (optional)
+
+Email (optional, for mail delivery):
+
+- `SMTP_ADDRESS`
+- `SMTP_PORT`
+- `SMTP_USERNAME`
+- `SMTP_PASSWORD`
+- `SMTP_DOMAIN`
+
+Notes:
+
+- `DATABASE_URL` and `REDIS_URL` are wired automatically from `render.yaml`.
+- The web service health check is `GET /up`.
+
+### 4) Deploy
+
+Trigger deploy (or wait for auto-deploy). Render will:
+
+- run `bash bin/render-build.sh`
+- run `bash bin/render-preflight.sh && bundle exec rails db:migrate` before web deploy
+- start Puma for web and Sidekiq for worker
+
+You can run the same check manually at any time:
+
+```bash
+bash bin/render-preflight.sh
+```
+
+### 5) Create first admin user (one-time)
+
+Open a Render shell on `ecommerce-web` and run:
+
+```bash
+bundle exec rails console
+Admin.create!(email: "admin@example.com", password: "change-me-now", password_confirmation: "change-me-now")
+```
+
+Then sign in at `/admin`.
+
+### 6) Configure Stripe webhook (if Stripe enabled)
+
+In Stripe Dashboard, point webhook endpoint to:
+
+- `https://<your-render-domain>/webhooks/stripe`
+
+Add `checkout.session.completed` and use the signing secret in `STRIPE_WEBHOOK_SECRET`.

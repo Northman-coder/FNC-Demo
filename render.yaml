@@ -13,7 +13,7 @@ services:
     name: ecommerce-web
     runtime: ruby
     buildCommand: bash bin/render-build.sh
-    preDeployCommand: bundle exec rails db:migrate
+    preDeployCommand: bash bin/render-preflight.sh && bundle exec rails db:migrate
     startCommand: bundle exec puma -C config/puma.rb
     healthCheckPath: /up
     envVars:
