@@ -114,6 +114,15 @@ Trigger deploy (or wait for auto-deploy). Render will:
 If you are on Render free tier and don't have Shell access, this startup `db:prepare`
 step ensures schema setup still happens on deploy/restart.
 
+### Optional: auto-create admin (no shell needed)
+
+Set these env vars on the web service to create an admin at boot if one doesn't exist:
+
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+
+The initializer is idempotent and skips during asset builds.
+
 You can run the same check manually at any time:
 
 ```bash
