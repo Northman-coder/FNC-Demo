@@ -3,6 +3,9 @@
 
 if Rails.env.production?
   Rails.application.config.after_initialize do
+    rails_groups = ENV.fetch("RAILS_GROUPS", "")
+    next if rails_groups.split(",").include?("assets")
+
     begin
       needs_seed = Category.count.zero? || Product.count.zero?
     rescue ActiveRecord::StatementInvalid => e

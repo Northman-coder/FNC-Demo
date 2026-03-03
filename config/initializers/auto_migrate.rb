@@ -5,8 +5,15 @@ require "active_record/tasks/database_tasks"
 
 if Rails.env.production?
   Rails.application.config.after_initialize do
+    # Skip during asset precompile or if explicitly disabled
+    rails_groups = ENV.fetch("RAILS_GROUPS", "")
+    next if rails_groups.split(",").include?("assets")
+    next if ENV["SKIP_AUTO_MIGRATE"] == "1"
+
     begin
-      ctx = ActiveRecord::Base.connection.migration_context
+      migrations_paths = ActiveRecord::Migrator.migrations_paths
+      ctx = ActiveRecord::MigrationContext.new(migrations_paths, ActiveRecord::SchemaMigration)
+
       if ctx.needs_migration?
         Rails.logger.info("Auto-migrate: applying pending migrations at boot")
         ctx.migrate
@@ -17,7 +24,7 @@ if Rails.env.production?
       Rails.logger.warn("Auto-migrate: attempting to create database then migrate: #{e.message}")
       begin
         ActiveRecord::Tasks::DatabaseTasks.create_current
-        ActiveRecord::Base.connection.migration_context.migrate
+        ActiveRecord::MigrationContext.new(ActiveRecord::Migrator.migrations_paths, ActiveRecord::SchemaMigration).migrate
       rescue => inner
         Rails.logger.error("Auto-migrate failed: #{inner.class}: #{inner.message}")
       end
