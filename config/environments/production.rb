@@ -51,11 +51,7 @@ Rails.application.configure do
 
   # Cache store for production. Prefer Redis on Render (shared with Sidekiq),
   # and fall back to memory store if REDIS_URL is not configured.
-  config.cache_store = if ENV["REDIS_URL"].present?
-    :redis_cache_store, { url: ENV["REDIS_URL"] }
-  else
-    :memory_store
-  end
+  config.cache_store = ENV["REDIS_URL"].present? ? [:redis_cache_store, { url: ENV["REDIS_URL"] }] : :memory_store
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
   config.active_job.queue_adapter = :sidekiq
