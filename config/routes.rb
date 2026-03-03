@@ -38,6 +38,10 @@ Rails.application.routes.draw do
     get "sales" => "sales#index", as: :sales
   end
 
+  namespace :ai do
+    resources :chats, only: [:create]
+  end
+
   # Newsletter subscription
   post "subscribe" => "subscribers#create", as: :subscribe
   get  "unsubscribe/:token" => "subscribers#unsubscribe", as: :unsubscribe
