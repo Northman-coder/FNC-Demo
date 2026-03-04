@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_02_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_03_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -156,17 +156,50 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_120000) do
     t.index ["stripe_checkout_session_id"], name: "index_orders_on_stripe_checkout_session_id", unique: true
   end
 
+  create_table "price_alerts", force: :cascade do |t|
+    t.datetime "confirmed_at"
+    t.datetime "created_at", null: false
+    t.string "email"
+    t.string "phone"
+    t.bigint "product_id", null: false
+    t.decimal "target_price", precision: 10, scale: 2
+    t.string "token", null: false
+    t.datetime "triggered_at"
+    t.datetime "updated_at", null: false
+    t.index ["product_id", "email"], name: "index_price_alerts_on_product_and_email"
+    t.index ["product_id"], name: "index_price_alerts_on_product_id"
+    t.index ["token"], name: "index_price_alerts_on_token", unique: true
+  end
+
+  create_table "product_relationships", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "kind", default: "related", null: false
+    t.integer "position", default: 0, null: false
+    t.bigint "product_id", null: false
+    t.bigint "related_product_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id", "related_product_id", "kind"], name: "index_product_relationships_on_pair_and_kind", unique: true
+    t.index ["product_id"], name: "index_product_relationships_on_product_id"
+    t.index ["related_product_id"], name: "index_product_relationships_on_related_product_id"
+  end
+
   create_table "products", force: :cascade do |t|
     t.string "brand"
     t.string "category"
     t.datetime "created_at", null: false
     t.string "dimensions"
+    t.integer "low_stock_threshold", default: 5, null: false
     t.string "name"
     t.boolean "new_arrival", default: false, null: false
     t.decimal "original_price"
+    t.integer "popularity_score", default: 0, null: false
     t.decimal "price"
+    t.integer "stock_level", default: 0, null: false
+    t.integer "trend_score", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["new_arrival"], name: "index_products_on_new_arrival"
+    t.index ["stock_level"], name: "index_products_on_stock_level"
+    t.index ["trend_score"], name: "index_products_on_trend_score"
   end
 
   create_table "return_items", force: :cascade do |t|
@@ -177,6 +210,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_120000) do
     t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.index ["order_item_id"], name: "index_return_items_on_order_item_id"
+  end
+
+  create_table "stock_alerts", force: :cascade do |t|
+    t.datetime "confirmed_at"
+    t.datetime "created_at", null: false
+    t.string "email"
+    t.datetime "notified_at"
+    t.string "phone"
+    t.bigint "product_id", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id", "email"], name: "index_stock_alerts_on_product_and_email"
+    t.index ["product_id"], name: "index_stock_alerts_on_product_id"
+    t.index ["token"], name: "index_stock_alerts_on_token", unique: true
   end
 
   create_table "subscribers", force: :cascade do |t|
@@ -203,5 +250,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_120000) do
   add_foreign_key "order_items", "orders"
   add_foreign_key "order_items", "products"
   add_foreign_key "orders", "customers"
+  add_foreign_key "price_alerts", "products"
+  add_foreign_key "product_relationships", "products"
+  add_foreign_key "product_relationships", "products", column: "related_product_id"
   add_foreign_key "return_items", "order_items"
+  add_foreign_key "stock_alerts", "products"
 end

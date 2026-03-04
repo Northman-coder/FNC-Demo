@@ -97,7 +97,7 @@ module Ai
     end
 
     def system_prompt
-      "Always be helpful and concise. Use bullets rarely. Keep replies under 70 words."
+      "You are a friendly shopping assistant. Answer greetings briefly, then guide to products. Mention price and brand. Prefer concrete picks over generalities. Keep replies under 70 words. If suggesting items, include why (deal, new arrival, best value)."
     end
 
     def headers

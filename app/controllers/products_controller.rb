@@ -10,28 +10,34 @@ class ProductsController < ApplicationController
     query = params[:query].to_s.strip.first(100)
     has_sort = params[:sort].present?
 
-    if query.present?
-      @filtered_listing = true
-      @title = "Search results"
-      @products = Product.where("name ILIKE ?", "%#{query}%")
-    elsif params[:category].present?
-      @filtered_listing = true
-      @products = Product.where(category: params[:category])
-    else
-      @products = Product.all
-    end
+    @title = "Search results" if query.present?
 
-    # If we're on the homepage (no query/category/sort), we de-duplicate the main grid
-    # to avoid repeating items shown in the top carousels.
-    if query.blank? && params[:category].blank? && !has_sort
+    @products = Product.all
+    @products = @products.where("name ILIKE ?", "%#{query}%") if query.present?
+    @products = @products.where(category: params[:category]) if params[:category].present?
+    @products = @products.where(brand: params[:brand]) if params[:brand].present?
+
+    min_price = safe_decimal(params[:price_min])
+    max_price = safe_decimal(params[:price_max])
+    @products = @products.where("price >= ?", min_price) if min_price
+    @products = @products.where("price <= ?", max_price) if max_price
+    @products = @products.in_stock if truthy_param?(:in_stock)
+    @products = @products.discounted if truthy_param?(:discounted)
+
+    filters_applied = filters_present?(query, has_sort)
+    @filtered_listing = filters_applied
+
+    @title ||= params[:category] if params[:category].present?
+    @title ||= params[:brand] if params[:brand].present?
+    @title ||= "All products" if filters_applied
+
+    unless filters_applied
       @products = @products.where.not(id: @recommendations.pluck(:id))
       @products = @products.where.not(id: @new_arrivals.pluck(:id))
-    else
-      @filtered_listing = true
-      @title ||= "All products"
     end
 
     @products = apply_sort(@products)
+    @facets = build_facets(@products)
     @pagy, @products = pagy(@products, items: pagy_items_for_grid)
   end
 
@@ -40,13 +46,8 @@ class ProductsController < ApplicationController
   #end
   def show
     @product = Product.find(params[:id])
-    if @product.respond_to?(:category) && @product.category.present?
-      @related_products = Product.where(category: @product.category).where.not(id: @product.id).limit(8)
-    else
-      @related_products = Product.where.not(id: @product.id).limit(8)
-    end
-  # or use a recommendation logic
-   end
+    @related_products = @product.related_or_fallback(limit: 8)
+  end
 
   # GET /products/new
   def new
@@ -156,6 +157,46 @@ class ProductsController < ApplicationController
       25
     end
 
+    def truthy_param?(key)
+      ActiveModel::Type::Boolean.new.cast(params[key])
+    end
+
+    def safe_decimal(value)
+      return nil if value.blank?
+
+      BigDecimal(value.to_s)
+    rescue ArgumentError
+      nil
+    end
+
+    def filters_present?(query, has_sort)
+      query.present? || params[:category].present? || params[:brand].present? || params[:price_min].present? ||
+        params[:price_max].present? || truthy_param?(:discounted) || truthy_param?(:in_stock) || has_sort
+    end
+
+    def build_facets(scope)
+      facet_scope = scope.unscope(:order)
+
+      {
+        categories: facet_scope.group(:category).order(Arel.sql("COUNT(*) DESC")).limit(10).count,
+        brands: facet_scope.group(:brand).order(Arel.sql("COUNT(*) DESC")).limit(10).count,
+        price_ranges: price_range_facets(facet_scope)
+      }
+    end
+
+    def price_range_facets(scope)
+      buckets = [[0, 50], [50, 100], [100, 200], [200, nil]]
+
+      buckets.map do |min, max|
+        bucket_scope = scope
+        bucket_scope = bucket_scope.where("price >= ?", min) if min
+        bucket_scope = bucket_scope.where("price < ?", max) if max
+
+        label = max ? "$#{min}-#{max}" : "$#{min}+"
+        [label, bucket_scope.count]
+      end.to_h
+    end
+
     def prepare_shared_lists
       # show first three rows of categories on homepage (9 items) and make tiles larger
       featured_names = ["Light Bulbs", "Computers & Hardware"]
@@ -197,7 +238,21 @@ class ProductsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def product_params
-      p = params.expect(product: [ :name, :description, :price, :original_price, :category, :brand, :dimensions, :image, images: [] ])
+      p = params.expect(product: [
+        :name,
+        :description,
+        :price,
+        :original_price,
+        :category,
+        :brand,
+        :dimensions,
+        :stock_level,
+        :low_stock_threshold,
+        :popularity_score,
+        :trend_score,
+        :image,
+        images: []
+      ])
 
       # Rails will pass an empty array for `images` when the file field has no
       # selection; assigning that array would clear existing attachments.

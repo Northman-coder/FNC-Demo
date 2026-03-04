@@ -3,6 +3,8 @@ class Product < ApplicationRecord
   MAX_IMAGE_SIZE      = 5.megabytes
 
   scope :new_arrivals, -> { where(new_arrival: true).order(created_at: :desc) }
+  scope :in_stock, -> { where("stock_level > 0") }
+  scope :trending, -> { order(trend_score: :desc) }
 
   def toggle_new_arrival!
     update!(new_arrival: !new_arrival)
@@ -11,11 +13,17 @@ class Product < ApplicationRecord
   has_one_attached :image
   has_many_attached :images
   has_many :reviews
+  has_many :product_relationships, dependent: :destroy
+  has_many :related_products, -> { order("product_relationships.position ASC") }, through: :product_relationships, source: :related_product
+  has_many :stock_alerts, dependent: :destroy
+  has_many :price_alerts, dependent: :destroy
   # ... price, original_price, stock_status, sku, etc.
 
   validates :name, :price, presence: true
   validates :price, numericality: { greater_than_or_equal_to: 0 }
   validates :original_price, numericality: { greater_than_or_equal_to: :price }, allow_nil: true
+  validates :stock_level, :low_stock_threshold, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :popularity_score, :trend_score, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
   validate :acceptable_image,  if: -> { image.attached? }
   validate :acceptable_images, if: -> { images.attached? }
@@ -24,6 +32,28 @@ class Product < ApplicationRecord
   # strictly greater than the current price.
   def discounted?
     original_price.present? && price < original_price
+  end
+
+  def low_stock?
+    stock_level.to_i.positive? && stock_level <= low_stock_threshold.to_i
+  end
+
+  def sold_out?
+    stock_level.to_i <= 0
+  end
+
+  def related_or_fallback(limit: 8)
+    explicit = related_products.limit(limit).to_a
+
+    if explicit.size < limit
+      fallback = Product.where(category: category).where.not(id: id)
+      fallback = fallback.where.not(id: explicit.map(&:id))
+      explicit.concat(fallback.limit(limit - explicit.size))
+    end
+
+    return explicit if explicit.present?
+
+    Product.where.not(id: id).limit(limit)
   end
 
   # query helpers

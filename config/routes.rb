@@ -45,6 +45,16 @@ Rails.application.routes.draw do
   # Newsletter subscription
   post "subscribe" => "subscribers#create", as: :subscribe
   get  "unsubscribe/:token" => "subscribers#unsubscribe", as: :unsubscribe
+
+  get "search/typeahead" => "search#typeahead", as: :search_typeahead
+
+  resources :stock_alerts, only: [:create], param: :token do
+    get :confirm, on: :member
+  end
+
+  resources :price_alerts, only: [:create], param: :token do
+    get :confirm, on: :member
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
