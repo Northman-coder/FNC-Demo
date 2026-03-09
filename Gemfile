@@ -91,4 +91,4 @@ gem "activeadmin", "4.0.0.beta21"
 gem "tailwind_devise", "~> 0.0.3"
 
 # Payments
-gem "stripe", "~> 13.0"
+gem "stripe", "~> 18.4"
