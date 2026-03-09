@@ -86,7 +86,7 @@ gem "redis", "~> 5.0"
 gem "pagy", "~> 8.0"
 
 # Admin backoffice (kept separate from the app's existing /admin dashboard)
-gem "activeadmin", "4.0.0.beta21"
+gem "activeadmin", "4.0.0.beta22"
 
 gem "tailwind_devise", "~> 0.0.3"
 
